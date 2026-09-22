@@ -7,6 +7,7 @@ import ShopFront from "@/components/ShopFront";
 import { getOperator, getProducts } from "@/lib/store";
 import { hasStore } from "@/lib/plans";
 import { getSession } from "@/lib/auth";
+import { PRIVATE, SITE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,18 @@ type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const op = await getOperator((await params).slug);
-  return op ? { title: `Shop ${op.name}`, description: `Beauty products from ${op.name}, ${op.area}, ${op.city}` } : {};
+  if (!op || op.hidden) return { title: "Not found", ...PRIVATE };
+  const title = `Shop ${op.name}`;
+  const description = `Beauty products from ${op.name}, ${op.area}, ${op.city} — order for pickup or delivery on glee.ng.`;
+  const url = `/stylists/${op.slug}/shop`;
+  const image = op.logo || op.cover;
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", title: `${title} · glee.ng`, description, url, siteName: SITE.name, locale: "en_NG", images: [{ url: image, alt: op.name }] },
+    twitter: { card: "summary_large_image", title: `${title} · glee.ng`, description, images: [image] },
+  };
 }
 
 export default async function ShopPage({ params }: { params: Params }) {

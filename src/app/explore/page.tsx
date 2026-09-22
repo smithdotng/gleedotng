@@ -5,8 +5,15 @@ import ExploreFilters from "@/components/ExploreFilters";
 import OperatorCard from "@/components/OperatorCard";
 import { queryOperators } from "@/lib/store";
 import { CATEGORIES } from "@/lib/seed";
+import { SITE } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Explore stylists, salons & spas" };
+export const metadata: Metadata = {
+  title: "Explore stylists, salons & spas",
+  description: "Discover and book top-rated hair stylists, nail artists, makeup artists, barbers and spas across Nigeria.",
+  alternates: { canonical: "/explore" },
+  openGraph: { title: "Explore stylists, salons & spas · glee.ng", description: "Discover and book top-rated hair stylists, nail artists, makeup artists, barbers and spas across Nigeria.", url: "/explore", siteName: SITE.name, locale: "en_NG", type: "website", images: [SITE.ogImage] },
+  twitter: { card: "summary_large_image", title: "Explore stylists, salons & spas · glee.ng", description: "Discover and book top-rated hair stylists, nail artists, makeup artists, barbers and spas across Nigeria.", images: [SITE.ogImage.url] },
+};
 export const dynamic = "force-dynamic";
 
 type SP = Promise<Record<string, string | undefined>>;

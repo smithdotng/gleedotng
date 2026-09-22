@@ -4,9 +4,10 @@ import LoginForm from "@/components/LoginForm";
 import Photo from "@/components/Photo";
 import { getSession } from "@/lib/auth";
 import { IMG } from "@/lib/images";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Operator sign in" };
+export const metadata = { title: "Operator sign in", ...PRIVATE };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;

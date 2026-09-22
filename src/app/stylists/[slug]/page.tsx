@@ -13,6 +13,7 @@ import { getSession } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/seed";
 import { WEEKDAY_LABEL, lowestPrice, naira, prettyDate, prettyTime, priceTierLabel } from "@/lib/utils";
 import type { Weekday } from "@/lib/types";
+import { PRIVATE, SITE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,18 @@ type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const op = await getOperator((await params).slug);
-  return op ? { title: `${op.name} — ${op.area}, ${op.city}`, description: op.tagline } : {};
+  if (!op || op.hidden) return { title: "Not found", ...PRIVATE };
+  const title = `${op.name} — ${op.area}, ${op.city}`;
+  const description = `${op.tagline} Book ${op.kind.toLowerCase()} appointments online on glee.ng.`;
+  const url = `/stylists/${op.slug}`;
+  const images = [{ url: op.cover, alt: op.name }];
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "profile", title: `${title} · glee.ng`, description, url, siteName: SITE.name, locale: "en_NG", images },
+    twitter: { card: "summary_large_image", title: `${title} · glee.ng`, description, images: [op.cover] },
+  };
 }
 
 const ORDER: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];

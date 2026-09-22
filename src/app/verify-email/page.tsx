@@ -4,9 +4,10 @@ import { consumeVerificationToken, getOperator } from "@/lib/store";
 import { getSession } from "@/lib/auth";
 import { sendLater } from "@/lib/email";
 import * as mail from "@/lib/email/templates";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Verify your email" };
+export const metadata = { title: "Verify your email", ...PRIVATE };
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token } = await searchParams;

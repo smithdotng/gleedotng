@@ -6,9 +6,10 @@ import { getSession } from "@/lib/auth";
 import { getOperator, getOrders, getProducts } from "@/lib/store";
 import { hasStore, planInfo } from "@/lib/plans";
 import { naira } from "@/lib/utils";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Store" };
+export const metadata = { title: "Store", ...PRIVATE };
 
 export default async function StoreDashboard({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

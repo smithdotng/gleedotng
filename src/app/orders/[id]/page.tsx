@@ -4,9 +4,10 @@ import { CheckCircle2, Mail, MapPin, Phone, Store, Truck } from "lucide-react";
 import Photo from "@/components/Photo";
 import { getOperator, getOrder } from "@/lib/store";
 import { naira } from "@/lib/utils";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Order placed" };
+export const metadata = { title: "Order placed", ...PRIVATE };
 
 const COPY = {
   pending: ["Order received", "The boutique will confirm your order shortly."],

@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BarChart3, BellRing, CalendarCheck, CreditCard, Globe2, ShieldCheck } from "lucide-react";
 import Photo from "@/components/Photo";
 import Pricing from "@/components/Pricing";
 import SectionHeading from "@/components/SectionHeading";
 import { IMG } from "@/lib/images";
+import { SITE } from "@/lib/site";
 
-export const metadata = { title: "For beauty businesses" };
+export const metadata: Metadata = {
+  title: "For beauty businesses",
+  description: "Grow your salon, studio or spa with a premium glee.ng profile, online bookings, reminders and your own boutique store.",
+  alternates: { canonical: "/for-business" },
+  openGraph: { title: "For beauty businesses · glee.ng", description: "Grow your salon, studio or spa with a premium glee.ng profile, online bookings, reminders and your own boutique store.", url: "/for-business", siteName: SITE.name, locale: "en_NG", type: "website", images: [SITE.ogImage] },
+  twitter: { card: "summary_large_image", title: "For beauty businesses · glee.ng", description: "Grow your salon, studio or spa with a premium glee.ng profile, online bookings, reminders and your own boutique store.", images: [SITE.ogImage.url] },
+};
 
 const FEATURES = [
   { icon: Globe2, title: "A stunning profile", text: "Portfolio, service menu, prices, hours and reviews on a page that feels as premium as your work." },

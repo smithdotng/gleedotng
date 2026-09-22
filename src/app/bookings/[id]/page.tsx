@@ -4,9 +4,10 @@ import { CalendarDays, CheckCircle2, Clock, Home, Mail, MapPin, Phone } from "lu
 import Photo from "@/components/Photo";
 import { getBooking, getOperator } from "@/lib/store";
 import { duration, naira, prettyDate, prettyTime } from "@/lib/utils";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Booking requested" };
+export const metadata = { title: "Booking requested", ...PRIVATE };
 
 export default async function BookingConfirmation({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

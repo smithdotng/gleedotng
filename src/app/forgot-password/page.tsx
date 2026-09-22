@@ -1,7 +1,8 @@
 import AuthCard from "@/components/AuthCard";
 import { ForgotPasswordForm } from "@/components/PasswordForms";
+import { PRIVATE } from "@/lib/site";
 
-export const metadata = { title: "Forgot password" };
+export const metadata = { title: "Forgot password", ...PRIVATE };
 
 export default function ForgotPasswordPage() {
   return (

@@ -10,9 +10,10 @@ import { ResendVerificationButton } from "@/components/PasswordForms";
 import { MailCheck } from "lucide-react";
 import { WEEKDAY_LABEL, duration, naira, prettyTime, servicePriceLabel, toISODate } from "@/lib/utils";
 import type { Weekday } from "@/lib/types";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Dashboard" };
+export const metadata = { title: "Dashboard", ...PRIVATE };
 
 const ORDER: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 

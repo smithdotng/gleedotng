@@ -2,9 +2,10 @@ import Link from "next/link";
 import AuthCard from "@/components/AuthCard";
 import { ResetPasswordForm } from "@/components/PasswordForms";
 import { findAccountByResetToken } from "@/lib/store";
+import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Choose a new password" };
+export const metadata = { title: "Choose a new password", ...PRIVATE };
 
 export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token = "" } = await searchParams;

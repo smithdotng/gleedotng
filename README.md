@@ -99,3 +99,19 @@ Premium, table-based HTML template with plain-text fallback: `src/lib/email/layo
 | Order received / confirmed / ready or out for delivery / completed / cancelled | Client | Order placed & each status change |
 
 Existing accounts (created before verification existed) count as verified.
+
+## Share previews (Open Graph) & SEO
+
+- Every page carries Open Graph + Twitter card tags. The site default uses `public/og/glee-og.jpg` (1200×630); business profiles use their cover photo, Prestige shops use the business logo.
+- Absolute URLs come from `APP_URL` (set it to `https://glee.ng` in production). On Vercel it falls back to the project's production domain automatically.
+- `/robots.txt` and `/sitemap.xml` are generated (`src/app/robots.ts`, `src/app/sitemap.ts`); dashboards, sign-in, booking/order receipts and account pages are `noindex`.
+
+## Installable app (PWA)
+
+- Web app manifest at `/manifest.webmanifest` (`src/app/manifest.ts`) with icons in `public/icons/` — clients can "Add to Home Screen" on iOS and install on Android/desktop Chrome.
+- Service worker `public/sw.js` (registered in production only): pages are network-first so prices and availability stay live, public pages fall back to the last copy seen, and anything uncached shows `public/offline.html`. API calls, dashboards, sign-in and receipts are never cached.
+- After changing `sw.js`, bump its `VERSION` so returning visitors pick up the new worker.
+
+## Deploying (GitHub → Vercel)
+
+Repository: `github.com/smithdotng/gleedotng`. Import it in Vercel (framework: Next.js) and add the environment variables from `.env.example` — at minimum `MONGODB_URI`, `AUTH_SECRET`, `APP_URL` and the `SMTP_*` / `MAIL_FROM` values. Every `git push` to `main` redeploys.

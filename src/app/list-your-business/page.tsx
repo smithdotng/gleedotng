@@ -4,8 +4,15 @@ import { BadgeCheck, CalendarCheck, Sparkles } from "lucide-react";
 import ListingForm from "@/components/ListingForm";
 import Photo from "@/components/Photo";
 import { IMG } from "@/lib/images";
+import { SITE } from "@/lib/site";
 
-export const metadata: Metadata = { title: "List your beauty business" };
+export const metadata: Metadata = {
+  title: "List your beauty business",
+  description: "List your salon, studio or spa on glee.ng in five minutes and start receiving bookings.",
+  alternates: { canonical: "/list-your-business" },
+  openGraph: { title: "List your beauty business · glee.ng", description: "List your salon, studio or spa on glee.ng in five minutes and start receiving bookings.", url: "/list-your-business", siteName: SITE.name, locale: "en_NG", type: "website", images: [SITE.ogImage] },
+  twitter: { card: "summary_large_image", title: "List your beauty business · glee.ng", description: "List your salon, studio or spa on glee.ng in five minutes and start receiving bookings.", images: [SITE.ogImage.url] },
+};
 
 export default function ListYourBusiness() {
   return (
