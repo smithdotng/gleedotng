@@ -1,9 +1,10 @@
+import { siteUrl } from "@/lib/site";
 /**
  * glee.ng premium email layout.
  * Table-based, inline-styled HTML that renders consistently in Gmail, Apple Mail, Outlook and mobile clients.
  */
 
-export const appUrl = () => (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
+export const appUrl = () => siteUrl();
 
 const C = {
   espresso: "#1d0f0a",

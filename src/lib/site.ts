@@ -1,11 +1,24 @@
-/** Public site URL — used for canonical links, Open Graph and sitemaps. */
+/** Adds https:// when missing and drops trailing slashes; returns "" if the value isn't a usable URL. */
+function normalise(raw: string | undefined): string {
+  const v = (raw ?? "").trim().replace(/^["']|["']$/g, "");
+  if (!v) return "";
+  const withScheme = /^https?:\/\//i.test(v) ? v : `${/^(localhost|127\.0\.0\.1)(:|$)/.test(v) ? "http" : "https"}://${v}`;
+  try {
+    return new URL(withScheme).origin;
+  } catch {
+    return "";
+  }
+}
+
+/** Public site URL — used for canonical links, Open Graph, sitemaps and email links.
+ *  Accepts APP_URL with or without https:// (e.g. "glee.ng" or "https://glee.ng"). */
 export function siteUrl(): string {
-  const url =
-    process.env.APP_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
-    "http://localhost:3000";
-  return url.replace(/\/$/, "");
+  return (
+    normalise(process.env.APP_URL) ||
+    normalise(process.env.VERCEL_PROJECT_PRODUCTION_URL) ||
+    normalise(process.env.VERCEL_URL) ||
+    "http://localhost:3000"
+  );
 }
 
 export const SITE = {
