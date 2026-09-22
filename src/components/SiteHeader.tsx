@@ -15,6 +15,7 @@ const NAV = [
   { href: "/explore?category=nails", label: "Nails" },
   { href: "/explore?category=spa", label: "Spa & Skin" },
   { href: "/explore?category=barbing", label: "Barbers" },
+  { href: "/journal", label: "Journal" },
   { href: "/for-business", label: "For Business" },
 ];
 

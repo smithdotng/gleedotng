@@ -59,7 +59,7 @@ export default function SiteFooter() {
             <h4 className="eyebrow !text-gold-400">Company</h4>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li><a href="#" className="hover:text-gold-300">About</a></li>
-              <li><a href="#" className="hover:text-gold-300">Journal</a></li>
+              <li><Link href="/journal" className="hover:text-gold-300">Journal</Link></li>
               <li><a href="#" className="hover:text-gold-300">Help centre</a></li>
               <li><a href="mailto:hello@glee.ng" className="hover:text-gold-300">hello@glee.ng</a></li>
             </ul>

@@ -154,3 +154,24 @@ export interface OperatorAccount {
   resetTokenHash?: string;
   resetExpires?: string;
 }
+
+/* ---------------- Journal (admin-published blog) ---------------- */
+
+export interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  /** Lightweight markdown: #/## headings, **bold**, *italic*, links, lists, > quotes. */
+  body: string;
+  cover?: string;
+  tags: string[];
+  author: string;
+  status: "draft" | "published";
+  /** ISO timestamp — set when first published. */
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+  /** Revision of a team-authored post last applied to the database. */
+  managedRevision?: number;
+}

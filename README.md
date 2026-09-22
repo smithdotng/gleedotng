@@ -100,6 +100,17 @@ Premium, table-based HTML template with plain-text fallback: `src/lib/email/layo
 
 Existing accounts (created before verification existed) count as verified.
 
+## The Journal (blog)
+
+Public pages: `/journal` and `/journal/<slug>`. Only the glee.ng team publishes.
+
+- **Admin sign-in:** `/admin/login`, using `ADMIN_PASSWORD` (or `ADMIN_PASSWORD_HASH` from `npm run hash -- "your password"`). There is no admin user in the database — whoever holds the deployment secret is the admin. The session is a separate signed cookie (`glee_admin`), so an operator account can never reach the admin area.
+- **Admin area:** `/admin` lists every story with publish / unpublish / edit / delete; `/admin/posts/new` is the editor (markdown with live preview, standfirst, tags, byline, cover image).
+- **Posts** live in the `posts` collection (`src/lib/blog.ts`). Drafts are invisible to the public — hidden from the list, the API and search — but an admin can preview one at its own URL.
+- **Markdown** is rendered by `src/lib/markdown.ts`, a small in-house subset (headings, bold, italic, lists, quotes, links, rules). HTML in a post is escaped, never rendered, so a post cannot inject scripts.
+- **Team-written posts** ship in `src/lib/blog-seed.ts` and follow the managed-listing pattern: inserted when missing, refreshed when `revision` goes up. The introductory post "Beauty, beautifully booked" is revision 1.
+- Journal pages carry article Open Graph tags and appear in `sitemap.xml`; `/admin` is `noindex` and disallowed in robots.txt.
+
 ## Share previews (Open Graph) & SEO
 
 - Every page carries Open Graph + Twitter card tags. The site default uses `public/og/glee-og.jpg` (1200×630); business profiles use their cover photo, Prestige shops use the business logo.
