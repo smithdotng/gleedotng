@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import Logo from "./Logo";
+import { InstallButton } from "./InstallApp";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -56,6 +57,7 @@ export default function SiteHeader() {
           ))}
         </nav>
         <div className="hidden items-center gap-3 lg:flex">
+          <InstallButton variant="header" />
           <Link href="/login" className="text-[13px] font-medium text-ivory/75 hover:text-gold-300">
             Operator login
           </Link>
@@ -85,6 +87,7 @@ export default function SiteHeader() {
             <Link href="/list-your-business" className="btn-gold mt-3">
               List your business
             </Link>
+            <InstallButton variant="menu" />
           </div>
         </div>
       )}

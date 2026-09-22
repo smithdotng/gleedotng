@@ -10,6 +10,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import PwaRegister from "@/components/PwaRegister";
 import { SITE, siteUrl } from "@/lib/site";
+import { INSTALL_CAPTURE_SCRIPT } from "@/lib/pwa-install";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -48,6 +49,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INSTALL_CAPTURE_SCRIPT }} />
+      </head>
       <body className="min-h-screen flex flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>

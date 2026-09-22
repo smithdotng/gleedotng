@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./Logo";
+import { InstallButton } from "./InstallApp";
 import { CATEGORIES, CITIES } from "@/lib/seed";
 
 export default function SiteFooter() {
@@ -19,6 +20,7 @@ export default function SiteFooter() {
               <a href="#" className="hover:text-gold-300">TikTok</a>
               <a href="#" className="hover:text-gold-300">X</a>
             </div>
+            <InstallButton variant="footer" className="mt-7" />
           </div>
           <div className="md:col-span-2">
             <h4 className="eyebrow !text-gold-400">Discover</h4>

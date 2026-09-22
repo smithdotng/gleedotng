@@ -5,6 +5,7 @@ import Photo from "@/components/Photo";
 import { getBooking, getOperator } from "@/lib/store";
 import { duration, naira, prettyDate, prettyTime } from "@/lib/utils";
 import { PRIVATE } from "@/lib/site";
+import { InstallCard } from "@/components/InstallApp";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Booking requested", ...PRIVATE };
@@ -96,6 +97,13 @@ export default async function BookingConfirmation({ params }: { params: Promise<
             Keep exploring
           </Link>
         </div>
+
+        <InstallCard
+          tone="dark"
+          className="mt-10"
+          title="Keep glee on your phone"
+          text="Find this booking, rebook your favourites and discover new stylists in a tap — no app store needed."
+        />
       </div>
     </div>
   );

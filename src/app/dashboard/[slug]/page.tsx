@@ -8,6 +8,7 @@ import AppointmentsBoard from "@/components/AppointmentsBoard";
 import { getAccountByEmail, getBookings, getOperator } from "@/lib/store";
 import { ResendVerificationButton } from "@/components/PasswordForms";
 import { MailCheck } from "lucide-react";
+import { InstallCard } from "@/components/InstallApp";
 import { WEEKDAY_LABEL, duration, naira, prettyTime, servicePriceLabel, toISODate } from "@/lib/utils";
 import type { Weekday } from "@/lib/types";
 import { PRIVATE } from "@/lib/site";
@@ -121,6 +122,12 @@ export default async function Dashboard({
             </div>
           </div>
         )}
+
+        <InstallCard
+          className="mb-6"
+          title="Your salon, one tap away"
+          text="Install glee on your phone to see new bookings and confirm appointments straight from your home screen."
+        />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((s) => (

@@ -115,3 +115,4 @@ Existing accounts (created before verification existed) count as verified.
 ## Deploying (GitHub → Vercel)
 
 Repository: `github.com/smithdotng/gleedotng`. Import it in Vercel (framework: Next.js) and add the environment variables from `.env.example` — at minimum `MONGODB_URI`, `AUTH_SECRET`, `APP_URL` and the `SMTP_*` / `MAIL_FROM` values. Every `git push` to `main` redeploys.
+- **Install button:** `src/components/InstallApp.tsx` + `src/lib/pwa-install.ts`. A "Get the app" button appears in the header/mobile menu and footer, plus contextual cards on the operator dashboard and the booking confirmation page — only when the browser can actually install (Chrome/Edge/Android) or on iPhone/iPad, where it opens "Share → Add to Home Screen" instructions. Hidden once installed; cards can be dismissed for two weeks.
