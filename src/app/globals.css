@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   glee.ng — premium theme
+   Espresso + champagne gold, inspired by diner.ng's warm brown palette
+------------------------------------------------------------------- */
+@theme {
+  --color-espresso-950: #140a07;
+  --color-espresso-900: #1d0f0a;
+  --color-espresso-800: #2a1610;
+  --color-espresso-700: #3b1d0e; /* diner.ng's signature brown */
+  --color-espresso-600: #5a3322;
+  --color-espresso-500: #7a4e3a;
+
+  --color-gold-300: #ecd9b0;
+  --color-gold-400: #dcbf85;
+  --color-gold-500: #c9a46a;
+  --color-gold-600: #a8844c;
+  --color-gold-700: #7f6236;
+
+  --color-blush-100: #f7ebe5;
+  --color-blush-200: #efd6cb;
+  --color-blush-300: #e2b9a8;
+
+  --color-ivory: #fbf7f2;
+  --color-sand: #f3ebe1;
+  --color-linen: #e9dccd;
+  --color-ink: #1d0f0a;
+  --color-muted: #7b665b;
+
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Manrope Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-luxe: 0 30px 60px -30px rgb(29 15 10 / 0.35), 0 10px 25px -15px rgb(29 15 10 / 0.2);
+  --shadow-soft: 0 12px 30px -18px rgb(29 15 10 / 0.25);
+
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-gold-400);
+  color: var(--color-espresso-900);
+}
+
+@utility eyebrow {
+  @apply text-[11px] font-semibold tracking-[0.28em] uppercase text-gold-600;
+}
+
+@utility container-luxe {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-gold {
+  @apply btn bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 text-espresso-900 shadow-[0_10px_30px_-12px_rgb(201_164_106/0.8)] hover:brightness-105 hover:shadow-[0_14px_36px_-12px_rgb(201_164_106/0.95)];
+}
+@utility btn-dark {
+  @apply btn bg-espresso-800 text-ivory hover:bg-espresso-700;
+}
+@utility btn-outline {
+  @apply btn border border-espresso-800/20 text-espresso-800 hover:border-gold-500 hover:text-gold-700;
+}
+@utility btn-ghost-light {
+  @apply btn border border-ivory/25 text-ivory hover:border-gold-400 hover:text-gold-300;
+}
+
+@utility card-luxe {
+  @apply rounded-3xl bg-white ring-1 ring-espresso-900/5 shadow-soft;
+}
+
+@utility input-luxe {
+  @apply w-full rounded-2xl border border-linen bg-white px-4 py-3 text-sm text-ink placeholder:text-muted/70 outline-none transition focus:border-gold-500 focus:ring-4 focus:ring-gold-400/20;
+}
+@utility label-luxe {
+  @apply mb-1.5 block text-xs font-semibold tracking-wide text-espresso-600 uppercase;
+}
+
+@utility gold-rule {
+  @apply h-px w-full bg-gradient-to-r from-transparent via-gold-500/60 to-transparent;
+}
+
+@utility grain {
+  background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
