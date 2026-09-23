@@ -8,7 +8,7 @@ import { IMG } from "./images";
  */
 export const MANAGED_POSTS: { post: Post; revision: number }[] = [
   {
-    revision: 1,
+    revision: 2,
     post: {
       id: "post_welcome",
       slug: "welcome-to-glee-ng",
@@ -17,7 +17,7 @@ export const MANAGED_POSTS: { post: Post; revision: number }[] = [
         "Nigeria's beauty talent has never been the problem. Finding it, trusting it and booking it has. glee.ng is our answer — a considered home for the country's finest stylists, salons and spas.",
       cover: IMG.salonLounge,
       tags: ["Introducing glee", "Our philosophy"],
-      author: "The glee.ng team",
+      author: "Stanley — Founder, glee.ng",
       status: "published",
       publishedAt: "2026-09-23T09:00:00.000Z",
       createdAt: "2026-09-23T09:00:00.000Z",
@@ -68,7 +68,11 @@ We are starting deliberately: a small number of exceptional businesses, each one
 
 If you create beautiful work, we would like it to be found. [List your business](/list-your-business) and we will take it from there.
 
-If you are simply looking for your next appointment, [start exploring](/explore). The finest rooms in the country are a tap away.`,
+If you are simply looking for your next appointment, [start exploring](/explore). The finest rooms in the country are a tap away.
+
+---
+
+**Stanley** — Founder, glee.ng`,
     },
   },
 ];
