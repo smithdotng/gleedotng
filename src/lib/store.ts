@@ -4,7 +4,7 @@ import type { Collection, Filter, Sort } from "mongodb";
 import { getDb } from "./mongodb";
 import { SEED_OPERATORS } from "./seed";
 import { MANAGED_LISTINGS } from "./listings";
-import type { Booking, BookingStatus, CategoryId, Operator, OperatorAccount, Order, OrderStatus, Product } from "./types";
+import type { Booking, BookingStatus, CategoryId, Operator, OperatorAccount, Order, OrderStatus, Payment, PlanId, Product } from "./types";
 import { addDays, chairCapacity, isSlotFree, lowestPrice, toISODate, toMins, type Interval } from "./utils";
 
 /**
@@ -337,6 +337,108 @@ export async function createAccount(acc: OperatorAccount): Promise<OperatorAccou
 export async function deleteOperator(slug: string) {
   const col = await operatorsCol();
   await col.deleteOne({ slug });
+}
+
+/* ---------------- Listing edits (owner) ---------------- */
+
+/** Fields a business owner may change about their own listing. Plan, badge and ratings are not among them. */
+export type ListingPatch = Partial<
+  Pick<
+    Operator,
+    | "name"
+    | "kind"
+    | "categories"
+    | "city"
+    | "area"
+    | "address"
+    | "phone"
+    | "email"
+    | "instagram"
+    | "tagline"
+    | "bio"
+    | "cover"
+    | "gallery"
+    | "logo"
+    | "lead"
+    | "services"
+    | "hours"
+    | "homeService"
+    | "priceTier"
+  >
+>;
+
+export async function updateListing(slug: string, patch: ListingPatch): Promise<Operator | undefined> {
+  const col = await operatorsCol();
+  const set: Record<string, unknown> = { ...patch };
+  const unset: Record<string, ""> = {};
+  for (const [k, v] of Object.entries(set)) {
+    if (v === undefined) {
+      delete set[k];
+      unset[k] = "";
+    }
+  }
+  if (patch.services) set.fromPrice = lowestPrice(patch.services);
+  const update: Record<string, unknown> = { $set: set };
+  if (Object.keys(unset).length) update.$unset = unset;
+  await col.updateOne({ slug }, update);
+  return (await col.findOne({ slug }, NO_ID)) ?? undefined;
+}
+
+/* ---------------- Plans & payments ---------------- */
+
+async function paymentsCol(): Promise<Collection<Payment>> {
+  await ensureSetup();
+  return (await getDb()).collection<Payment>("payments");
+}
+
+export async function createPayment(p: Payment): Promise<Payment> {
+  await (await paymentsCol()).insertOne({ ...p });
+  return p;
+}
+
+export async function getPayment(txRef: string): Promise<Payment | undefined> {
+  return (await (await paymentsCol()).findOne({ txRef }, NO_ID)) ?? undefined;
+}
+
+export async function markPaymentPaid(txRef: string, providerId: string): Promise<void> {
+  await (await paymentsCol()).updateOne(
+    { txRef },
+    { $set: { status: "paid", providerId, paidAt: new Date().toISOString() } },
+  );
+}
+
+export async function markPaymentFailed(txRef: string): Promise<void> {
+  await (await paymentsCol()).updateOne({ txRef }, { $set: { status: "failed" } });
+}
+
+/** Activates a paid plan and clears any pending request. */
+export async function activatePlan(slug: string, plan: PlanId, renewsAt: string): Promise<Operator | undefined> {
+  const col = await operatorsCol();
+  await col.updateOne(
+    { slug },
+    {
+      $set: { plan, planStatus: "active", planRenewsAt: renewsAt, planRank: PLAN_RANK[plan] ?? 0, featured: plan !== "essential" },
+      $unset: { pendingPlan: "" },
+    },
+  );
+  return (await col.findOne({ slug }, NO_ID)) ?? undefined;
+}
+
+/** Records that an owner says they have paid by transfer — the team confirms before the plan changes. */
+export async function requestPlan(slug: string, plan: PlanId): Promise<void> {
+  const col = await operatorsCol();
+  await col.updateOne({ slug }, { $set: { pendingPlan: plan, planStatus: "pending" } });
+}
+
+export async function clearPendingPlan(slug: string): Promise<void> {
+  const col = await operatorsCol();
+  await col.updateOne({ slug }, { $unset: { pendingPlan: "" }, $set: { planStatus: "active" } });
+}
+
+/** Listings waiting for the team to confirm a transfer. */
+export async function getPendingPlanRequests(): Promise<Operator[]> {
+  const col = await operatorsCol();
+  return col.find({ pendingPlan: { $exists: true } }, NO_ID).limit(100).toArray();
 }
 
 /* ---------------- glee Store: products ---------------- */

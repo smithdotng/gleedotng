@@ -67,6 +67,12 @@ export interface Operator {
   hidden?: boolean;
   /** Revision of a team-managed listing last applied to the database. */
   managedRevision?: number;
+  /** "active" once a paid plan is paid for; "pending" while a bank transfer is being confirmed. */
+  planStatus?: "active" | "pending";
+  /** Plan the owner asked to move to, awaiting payment confirmation. */
+  pendingPlan?: PlanId;
+  /** ISO date the current paid plan runs to. */
+  planRenewsAt?: string;
   reviews: Review[];
   createdAt: string;
   /** Lowest service price — kept in sync by the store for sorting. */
@@ -174,4 +180,18 @@ export interface Post {
   updatedAt?: string;
   /** Revision of a team-authored post last applied to the database. */
   managedRevision?: number;
+}
+
+/* ---------------- Plan payments ---------------- */
+
+export interface Payment {
+  txRef: string;
+  operatorSlug: string;
+  plan: PlanId;
+  amount: number; // Naira
+  method: "flutterwave" | "transfer";
+  status: "pending" | "paid" | "failed";
+  providerId?: string;
+  createdAt: string;
+  paidAt?: string;
 }

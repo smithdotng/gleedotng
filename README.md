@@ -100,6 +100,19 @@ Premium, table-based HTML template with plain-text fallback: `src/lib/email/layo
 
 Existing accounts (created before verification existed) count as verified.
 
+## Operator self-service
+
+- **Edit listing** — `/dashboard/<slug>/edit` (`src/components/ListingEditor.tsx`): profile and contact details, photos, the full service menu (ranges, "from" and on-consultation prices) and opening hours, in four tabs that save together. The dashboard's service and hours cards link straight to the right tab.
+- Changes go through `PATCH /api/operators/<slug>`, which only accepts the signed-in owner's own listing and never touches plan, verified badge, ratings or reviews. Photo and service counts are capped by the plan.
+- A team-managed listing in `src/lib/listings.ts` is still overwritten if its `revision` goes up, so raise that only when you mean to replace the owner's edits.
+
+## Plans & payments
+
+- **Upgrading** starts at `/dashboard/<slug>/upgrade` — plan choice, then payment. It never re-runs the new-listing wizard, and the pricing table on `/for-business` links there too when an operator is signed in.
+- **Flutterwave** (`src/lib/billing.ts`): set `FLW_SECRET_KEY` and the operator pays by card, transfer or USSD. Flutterwave returns to `/api/billing/callback`, which verifies the transaction server-side (amount, currency and reference) before the plan changes — the redirect alone is never trusted.
+- **Without a key**, the same button shows your bank details (`BANK_NAME`, `BANK_ACCOUNT_NAME`, `BANK_ACCOUNT_NUMBER`) and an "I've sent the payment" button. That marks the listing `pendingPlan`, emails the operator and `TEAM_EMAIL`, and the team activates it at `/admin/plans`.
+- Payments are recorded in the `payments` collection; an active plan carries `planStatus` and `planRenewsAt`.
+
 ## The Journal (blog)
 
 Public pages: `/journal` and `/journal/<slug>`. Only the glee.ng team publishes.

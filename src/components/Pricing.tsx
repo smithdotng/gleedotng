@@ -4,11 +4,18 @@ import { PLANS } from "@/lib/plans";
 
 export { PLANS };
 
-export default function Pricing() {
+export default function Pricing({ slug, currentPlan }: { slug?: string; currentPlan?: string } = {}) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       {PLANS.map((p) => {
         const prestige = p.id === "prestige";
+        const isCurrent = Boolean(slug) && p.id === currentPlan;
+        // signed-in operators go straight to payment; everyone else starts a listing
+        const href = slug
+          ? p.id === "essential"
+            ? `/dashboard/${slug}`
+            : `/dashboard/${slug}/upgrade?plan=${p.id}`
+          : `/list-your-business?plan=${p.id}`;
         const signature = p.id === "signature";
         return (
           <div
@@ -62,12 +69,15 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href={`/list-your-business?plan=${p.id}`}
-                className={`${prestige ? "btn-gold" : signature ? "btn-ghost-light" : "btn-dark"} mt-9 w-full`}
-              >
-                {p.cta}
-              </Link>
+              {isCurrent ? (
+                <span className={`${prestige || signature ? "btn-ghost-light" : "btn-outline"} mt-9 w-full cursor-default opacity-70`}>
+                  Your current plan
+                </span>
+              ) : (
+                <Link href={href} className={`${prestige ? "btn-gold" : signature ? "btn-ghost-light" : "btn-dark"} mt-9 w-full`}>
+                  {slug && p.id !== "essential" ? `Upgrade to ${p.name}` : p.cta}
+                </Link>
+              )}
             </div>
           </div>
         );

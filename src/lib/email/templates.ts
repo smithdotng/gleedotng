@@ -236,3 +236,67 @@ export function orderStatusForClient(p: { order: Order; op: Operator }) {
     footerNote: "You're receiving this because you placed an order on glee.ng.",
   });
 }
+
+/* ---------------- Plans ---------------- */
+
+export function planActivated(p: { op: Operator; planName: string; amount: number; renewsAt: string }) {
+  const url = appUrl();
+  return build({
+    subject: `Your glee.ng ${p.planName} plan is active`,
+    preheader: `Payment received — ${p.op.name} is now on ${p.planName}.`,
+    eyebrow: "Payment received",
+    title: `Welcome to ${p.planName}`,
+    intro: `Thank you — <b>${esc(p.op.name)}</b> is now on the <b>${esc(p.planName)}</b> plan. Everything that comes with it is switched on already.`,
+    blocks: [
+      {
+        type: "details",
+        title: "Your plan",
+        rows: [
+          ["Plan", p.planName],
+          ["Paid", naira(p.amount)],
+          ["Renews", prettyDate(p.renewsAt.slice(0, 10), { day: "numeric", month: "long", year: "numeric" })],
+        ],
+      },
+    ],
+    cta: { label: "Open my dashboard", url: `${url}/dashboard/${p.op.slug}` },
+  });
+}
+
+export function planRequested(p: { op: Operator; planName: string; amount: number }) {
+  return build({
+    subject: `We're confirming your ${p.planName} payment`,
+    preheader: "Your upgrade is with our team.",
+    eyebrow: "Upgrade pending",
+    title: "Thank you — we're checking your transfer",
+    intro: `We have your request to move <b>${esc(p.op.name)}</b> to the <b>${esc(p.planName)}</b> plan. As soon as we see your transfer of <b>${naira(
+      p.amount,
+    )}</b>, the plan goes live and we'll email you. This is usually within a few working hours.`,
+    blocks: [{ type: "note", html: "Nothing changes on your listing until we confirm — your bookings carry on as normal." }],
+  });
+}
+
+export function planRequestForTeam(p: { op: Operator; planName: string; amount: number }) {
+  const url = appUrl();
+  return build({
+    subject: `Upgrade request: ${p.op.name} → ${p.planName}`,
+    preheader: `${p.op.name} says they have paid ${naira(p.amount)} by transfer.`,
+    eyebrow: "Action needed",
+    title: "An operator has requested an upgrade",
+    intro: `<b>${esc(p.op.name)}</b> (${esc(p.op.email)}) asked to move to <b>${esc(p.planName)}</b> and says the transfer of <b>${naira(
+      p.amount,
+    )}</b> has been sent. Confirm the money, then activate the plan.`,
+    blocks: [
+      {
+        type: "details",
+        title: "Business",
+        rows: [
+          ["Name", p.op.name],
+          ["Where", `${p.op.area}, ${p.op.city}`],
+          ["Phone", p.op.phone],
+          ["Current plan", p.op.plan],
+        ],
+      },
+    ],
+    cta: { label: "Open plan requests", url: `${url}/admin/plans` },
+  });
+}

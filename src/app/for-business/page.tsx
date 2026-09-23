@@ -6,7 +6,10 @@ import Pricing from "@/components/Pricing";
 import SectionHeading from "@/components/SectionHeading";
 import { IMG } from "@/lib/images";
 import { SITE } from "@/lib/site";
+import { getSession } from "@/lib/auth";
+import { getOperator } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "For beauty businesses",
   description: "Grow your salon, studio or spa with a premium glee.ng profile, online bookings, reminders and your own boutique store.",
@@ -31,7 +34,10 @@ const STEPS = [
   ["Take bookings", "Confirm requests, manage your diary and grow your regulars."],
 ];
 
-export default function ForBusiness() {
+export default async function ForBusiness() {
+  // a signed-in operator sees "upgrade" prices that go to payment, not a new listing
+  const session = await getSession();
+  const op = session ? await getOperator(session.slug) : undefined;
   return (
     <>
       <section className="relative isolate overflow-hidden bg-espresso-900">
@@ -106,7 +112,7 @@ export default function ForBusiness() {
       <section id="pricing" className="container-luxe scroll-mt-24 py-24">
         <SectionHeading eyebrow="Pricing" title="Start free." accent="Upgrade when you glow." center />
         <div className="mx-auto mt-12 max-w-6xl">
-          <Pricing />
+          <Pricing slug={op?.slug} currentPlan={op?.plan} />
         </div>
       </section>
     </>

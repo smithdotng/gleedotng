@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ExternalLink, LogOut, PenLine, Plus } from "lucide-react";
+import { ExternalLink, LogOut, PenLine, Plus, Wallet } from "lucide-react";
 import { isAdmin } from "@/lib/admin-auth";
 import { getPosts } from "@/lib/blog";
 import { PostRowActions } from "@/components/AdminForms";
@@ -28,6 +28,9 @@ export default async function AdminHome() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Link href="/admin/plans" className="btn-ghost-light !py-2.5">
+              <Wallet size={15} /> Plan requests
+            </Link>
             <Link href="/journal" className="btn-ghost-light !py-2.5">
               <ExternalLink size={15} /> View the Journal
             </Link>

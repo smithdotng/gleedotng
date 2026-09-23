@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Clock, ExternalLink, LogOut, PartyPopper, ShoppingBag, Star, Wallet } from "lucide-react";
+import { CalendarDays, Clock, ExternalLink, LogOut, PartyPopper, PenLine, ShoppingBag, Star, Wallet } from "lucide-react";
 import { hasStore, planInfo } from "@/lib/plans";
 import { getSession } from "@/lib/auth";
 import Photo from "@/components/Photo";
@@ -9,7 +9,7 @@ import { getAccountByEmail, getBookings, getOperator } from "@/lib/store";
 import { ResendVerificationButton } from "@/components/PasswordForms";
 import { MailCheck } from "lucide-react";
 import { InstallCard } from "@/components/InstallApp";
-import { WEEKDAY_LABEL, duration, naira, prettyTime, servicePriceLabel, toISODate } from "@/lib/utils";
+import { WEEKDAY_LABEL, duration, naira, prettyDate, prettyTime, servicePriceLabel, toISODate } from "@/lib/utils";
 import type { Weekday } from "@/lib/types";
 import { PRIVATE } from "@/lib/site";
 
@@ -23,10 +23,10 @@ export default async function Dashboard({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ welcome?: string }>;
+  searchParams: Promise<{ welcome?: string; upgraded?: string }>;
 }) {
   const { slug } = await params;
-  const { welcome } = await searchParams;
+  const { welcome, upgraded } = await searchParams;
   const session = await getSession();
   if (!session) redirect(`/login?next=/dashboard/${slug}`);
   if (session.slug !== slug) redirect(`/dashboard/${session.slug}`);
@@ -76,6 +76,9 @@ export default async function Dashboard({
             <Link href={`/stylists/${op.slug}`} className="btn-ghost-light !py-2.5">
               <ExternalLink size={15} /> View public profile
             </Link>
+            <Link href={`/dashboard/${op.slug}/edit`} className="btn-ghost-light !py-2.5">
+              <PenLine size={15} /> Edit listing
+            </Link>
             <Link href={`/dashboard/${op.slug}/store`} className={hasStore(op) ? "btn-gold !py-2.5" : "btn-ghost-light !py-2.5"}>
               <ShoppingBag size={15} /> {hasStore(op) ? "My store" : "Store"}
             </Link>
@@ -85,7 +88,7 @@ export default async function Dashboard({
               </button>
             </form>
             {op.plan !== "prestige" && (
-              <Link href="/for-business#pricing" className="btn-gold !py-2.5">
+              <Link href={`/dashboard/${op.slug}/upgrade`} className="btn-gold !py-2.5">
                 Upgrade
               </Link>
             )}
@@ -106,6 +109,29 @@ export default async function Dashboard({
               </div>
             </div>
             <ResendVerificationButton />
+          </div>
+        )}
+
+        {upgraded && (
+          <div className="mb-6 flex items-start gap-4 rounded-[24px] bg-gradient-to-r from-gold-300 via-gold-400 to-gold-500 p-6 text-espresso-900 shadow-luxe">
+            <PartyPopper size={26} className="shrink-0" />
+            <div>
+              <p className="font-display text-2xl">You&apos;re on {planInfo(op.plan).name}</p>
+              <p className="mt-1 text-sm">
+                Payment received — everything on the plan is switched on.
+                {op.planRenewsAt && ` Renews ${prettyDate(op.planRenewsAt.slice(0, 10), { day: "numeric", month: "long", year: "numeric" })}.`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {op.pendingPlan && (
+          <div className="mb-6 flex items-start gap-4 rounded-[24px] border border-gold-500/40 bg-ivory p-6 shadow-soft">
+            <Wallet size={24} className="mt-0.5 shrink-0 text-gold-600" />
+            <div>
+              <p className="font-display text-2xl text-espresso-900">We&apos;re confirming your {planInfo(op.pendingPlan).name} payment</p>
+              <p className="mt-1 text-sm text-muted">Your plan changes as soon as our team sees the transfer — we&apos;ll email you.</p>
+            </div>
           </div>
         )}
 
@@ -146,7 +172,12 @@ export default async function Dashboard({
           <AppointmentsBoard initial={bookings} />
           <div className="space-y-6">
             <div className="card-luxe p-6">
-              <h3 className="font-display text-2xl text-espresso-900">Service menu</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-display text-2xl text-espresso-900">Service menu</h3>
+                <Link href={`/dashboard/${op.slug}/edit?tab=services`} className="text-xs font-semibold text-gold-700 hover:underline">
+                  Edit
+                </Link>
+              </div>
               <ul className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1 text-sm">
                 {op.services.map((s) => (
                   <li key={s.id} className="flex justify-between gap-3">
@@ -160,7 +191,12 @@ export default async function Dashboard({
               </ul>
             </div>
             <div className="card-luxe p-6">
-              <h3 className="font-display text-2xl text-espresso-900">Opening hours</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-display text-2xl text-espresso-900">Opening hours</h3>
+                <Link href={`/dashboard/${op.slug}/edit?tab=opening%20hours`} className="text-xs font-semibold text-gold-700 hover:underline">
+                  Edit
+                </Link>
+              </div>
               <ul className="mt-4 space-y-2 text-sm">
                 {ORDER.map((d) => (
                   <li key={d} className="flex justify-between">

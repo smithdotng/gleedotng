@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Lock, Send, Trash2 } from "lucide-react";
+import { Check, Eye, EyeOff, Loader2, Lock, Send, Trash2, X } from "lucide-react";
 import type { Post } from "@/lib/types";
 
 /* ---------------- Sign in ---------------- */
@@ -113,6 +113,35 @@ export function PostRowActions({ post }: { post: Post }) {
           <Trash2 size={15} />
         </button>
       )}
+    </div>
+  );
+}
+
+/* ---------------- Plan requests ---------------- */
+
+export function PlanRequestActions({ slug, plan }: { slug: string; plan: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState<"activate" | "decline" | null>(null);
+
+  const send = async (action: "activate" | "decline") => {
+    setBusy(action);
+    await fetch("/api/admin/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, plan, action }),
+    });
+    setBusy(null);
+    router.refresh();
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button onClick={() => send("activate")} disabled={busy !== null} className="btn-gold !px-4 !py-2 text-xs">
+        {busy === "activate" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Payment received — activate
+      </button>
+      <button onClick={() => send("decline")} disabled={busy !== null} className="btn-outline !px-4 !py-2 text-xs">
+        {busy === "decline" ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />} Dismiss
+      </button>
     </div>
   );
 }

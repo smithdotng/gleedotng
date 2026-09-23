@@ -6,6 +6,8 @@ export interface PlanInfo {
   price: string;
   note: string;
   badge?: string;
+  /** Monthly price in Naira — 0 for the free plan. */
+  amount: number;
   blurb: string;
   features: string[];
   cta: string;
@@ -18,6 +20,7 @@ export interface PlanInfo {
 export const PLANS: PlanInfo[] = [
   {
     id: "essential",
+    amount: 0,
     name: "Essential",
     price: "Free",
     note: "forever",
@@ -37,6 +40,7 @@ export const PLANS: PlanInfo[] = [
   },
   {
     id: "signature",
+    amount: 15000,
     name: "Signature",
     price: "₦15,000",
     note: "per month",
@@ -59,6 +63,7 @@ export const PLANS: PlanInfo[] = [
   },
   {
     id: "prestige",
+    amount: 35000,
     name: "Prestige",
     price: "₦35,000",
     note: "per month",
@@ -84,3 +89,7 @@ export const PLANS: PlanInfo[] = [
 export const planInfo = (id: PlanId | undefined) => PLANS.find((p) => p.id === id) ?? PLANS[0];
 export const hasStore = (op: { plan?: PlanId }) => planInfo(op.plan).store;
 export const isPlanId = (v: unknown): v is PlanId => PLANS.some((p) => p.id === v);
+
+/** Plans an operator can pay for, in order. */
+export const planRank = (id: PlanId | undefined) => PLANS.findIndex((p) => p.id === (id ?? "essential"));
+export const isUpgrade = (from: PlanId | undefined, to: PlanId) => planRank(to) > planRank(from);
