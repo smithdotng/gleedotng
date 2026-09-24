@@ -8,6 +8,79 @@ import { IMG } from "./images";
  */
 export const MANAGED_POSTS: { post: Post; revision: number }[] = [
   {
+    revision: 1,
+    post: {
+      id: "post_for-business",
+      slug: "the-chair-that-books-itself",
+      title: "The chair that books itself",
+      excerpt:
+        "Your hands are the business. Everything else — the price list in your DMs, the back-and-forth, the Saturday you lost to a no-show — is admin standing between you and the next client. Here is what glee.ng carries for you.",
+      cover: IMG.salonChairs,
+      tags: ["For business", "Growth"],
+      author: "Stanley — Founder, glee.ng",
+      status: "published",
+      publishedAt: "2026-09-24T08:00:00.000Z",
+      createdAt: "2026-09-24T08:00:00.000Z",
+      body: `You did not open a salon to answer messages.
+
+You opened it because you can see the shape of a face and know the cut. Because a colour correction that would frighten other people is, to you, an afternoon. Because there is a particular satisfaction in a client looking at herself a little longer than she meant to.
+
+And yet ask any owner where the week actually goes and you hear the same list: pricing questions in the DMs, a client who wanted Saturday but only said so on Friday, the deposit conversation, the rebooking that never happened because nobody sent the message. None of that is craft. All of it is cost.
+
+glee.ng exists to take that weight off the chair.
+
+## What a profile does that a feed cannot
+
+An Instagram grid is a portfolio. It is a beautiful one, and you should keep it. But it was never built to answer the three questions that decide whether a stranger becomes a client: **what does it cost, are you free on Saturday, and can I book it now?**
+
+Your glee.ng profile answers all three without you lifting your phone. Your work, your service menu, your prices — ranges where a range is honest, "from" where the work grows with length or product, on consultation where a face must be seen first. Your hours, so nobody asks for a Monday you never open. Your location and a tap-to-call number for the client who would rather hear your voice.
+
+A client picks a service, takes a time that is genuinely free, and the appointment lands on your dashboard while you are still finishing the head in front of you.
+
+> You are not selling harder. You are simply not losing the people who were already sold.
+
+## The quiet arithmetic
+
+Run the numbers on your own week rather than mine.
+
+- Count the enquiries you answered that never became appointments. How many died waiting for a reply you were too busy to send?
+- Count the hours your chairs sat empty on a day that looked full in your head.
+- Count the clients who meant to come back and never quite got round to asking when.
+
+A single recovered booking a week is not a rounding error in this trade. It is rent, or staff, or the stock you keep meaning to order. The platform does not need to work miracles to pay for itself; it only needs to stop the ordinary leaks.
+
+## Start free. Upgrade when it earns it.
+
+**Essential — free, permanently.** A full profile, up to ten services with prices, photographs, online booking requests, and a dashboard where you confirm appointments with a tap. No card, no trial clock. If all glee.ng ever does for you is take bookings while you work, it costs nothing.
+
+**Signature — ₦15,000 a month.** For the house that wants to be found first: featured placement on the home page and in search, the gold verified badge our team grants after reviewing your business, and an unlimited menu and gallery. Placement is the difference between being on the list and being at the top of it.
+
+**Prestige — ₦35,000 a month.** Everything in Signature, plus your own boutique inside glee.ng. Sell the serums, bundles, pomades and aftercare you already recommend, with stock that keeps itself honest and orders you fulfil by pickup or delivery — beside the services that sell them. For most houses this is the line that changes the economics: the same client, the same visit, a second revenue line.
+
+Upgrading takes a minute from your dashboard, and it never touches your listing — your profile, your prices, your bookings and your clients stay exactly as they are.
+
+## What you keep
+
+Your clients are yours. Your name is yours. Your standards are yours — we simply ask that prices are published, hours are real, and the portfolio is your own work, because trust is the whole product in this trade.
+
+What changes is who carries the admin. You bring the craft; we carry the page, the calendar, the notifications, the receipts and the shop.
+
+## The room is filling
+
+We are onboarding deliberately: a small number of exceptional businesses, each one reviewed, Abuja and Lagos first. Early listings get the placement, the attention of our team, and a say in what we build next — the kind of advantage that stops being available once a marketplace is crowded.
+
+If you have built something worth finding, let it be found.
+
+[List your business](/list-your-business) — it takes about five minutes and costs nothing. Or [read the plans in full](/for-business#pricing) and choose the one that matches your ambition.
+
+Your hands are the business. Let the rest of it run itself.
+
+---
+
+**Stanley** — Founder, glee.ng`,
+    },
+  },
+  {
     revision: 2,
     post: {
       id: "post_welcome",
