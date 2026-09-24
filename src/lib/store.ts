@@ -424,21 +424,82 @@ export async function activatePlan(slug: string, plan: PlanId, renewsAt: string)
   return (await col.findOne({ slug }, NO_ID)) ?? undefined;
 }
 
-/** Records that an owner says they have paid by transfer — the team confirms before the plan changes. */
-export async function requestPlan(slug: string, plan: PlanId): Promise<void> {
+/** Records a declared bank transfer and activates the plan on trust — the team matches it afterwards. */
+export async function claimTransfer(
+  slug: string,
+  plan: PlanId,
+  details: { payerName: string; payerBank?: string; paidOn?: string; reference?: string; note?: string },
+  amount: number,
+  txRef: string,
+  renewsAt: string,
+): Promise<Operator | undefined> {
   const col = await operatorsCol();
-  await col.updateOne({ slug }, { $set: { pendingPlan: plan, planStatus: "pending" } });
+  const current = await col.findOne({ slug }, NO_ID);
+  if (!current) return undefined;
+
+  await createPayment({
+    txRef,
+    operatorSlug: slug,
+    plan,
+    amount,
+    method: "transfer",
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    previousPlan: current.plan,
+    ...details,
+  });
+
+  await col.updateOne(
+    { slug },
+    {
+      $set: { plan, planStatus: "confirming", planRenewsAt: renewsAt, planRank: PLAN_RANK[plan] ?? 0, featured: plan !== "essential" },
+      $unset: { pendingPlan: "" },
+    },
+  );
+  return (await col.findOne({ slug }, NO_ID)) ?? undefined;
 }
 
-export async function clearPendingPlan(slug: string): Promise<void> {
-  const col = await operatorsCol();
-  await col.updateOne({ slug }, { $unset: { pendingPlan: "" }, $set: { planStatus: "active" } });
+/** Transfers the owner has declared but the team hasn't matched to the bank statement yet. */
+export async function getUnverifiedTransfers(): Promise<{ payment: Payment; operator?: Operator }[]> {
+  const payments = await (await paymentsCol())
+    .find({ method: "transfer", status: "pending" }, NO_ID)
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .toArray();
+  const ops = await operatorsCol();
+  return Promise.all(
+    payments.map(async (payment) => ({
+      payment,
+      operator: (await ops.findOne({ slug: payment.operatorSlug }, NO_ID)) ?? undefined,
+    })),
+  );
 }
 
-/** Listings waiting for the team to confirm a transfer. */
-export async function getPendingPlanRequests(): Promise<Operator[]> {
+/** The money is in the account — the plan simply stops being marked "confirming". */
+export async function confirmTransfer(txRef: string): Promise<Operator | undefined> {
+  const payment = await getPayment(txRef);
+  if (!payment) return undefined;
+  await markPaymentPaid(txRef, "bank-transfer");
   const col = await operatorsCol();
-  return col.find({ pendingPlan: { $exists: true } }, NO_ID).limit(100).toArray();
+  await col.updateOne({ slug: payment.operatorSlug }, { $set: { planStatus: "active" } });
+  return (await col.findOne({ slug: payment.operatorSlug }, NO_ID)) ?? undefined;
+}
+
+/** No money arrived — put the listing back on the plan it was on before. */
+export async function reverseTransfer(txRef: string): Promise<Operator | undefined> {
+  const payment = await getPayment(txRef);
+  if (!payment) return undefined;
+  await markPaymentFailed(txRef);
+  const back = payment.previousPlan ?? "essential";
+  const col = await operatorsCol();
+  await col.updateOne(
+    { slug: payment.operatorSlug },
+    {
+      $set: { plan: back, planStatus: "active", planRank: PLAN_RANK[back] ?? 0, featured: back !== "essential" },
+      $unset: { planRenewsAt: "" },
+    },
+  );
+  return (await col.findOne({ slug: payment.operatorSlug }, NO_ID)) ?? undefined;
 }
 
 /* ---------------- glee Store: products ---------------- */

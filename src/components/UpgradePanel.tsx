@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Building2, Check, CreditCard, Loader2, ShieldCheck } from "lucide-react";
 import { PLANS, planInfo, planRank } from "@/lib/plans";
 import type { Operator, PlanId } from "@/lib/types";
@@ -21,6 +23,7 @@ export default function UpgradePanel({
   preselect?: PlanId;
   notice?: "cancelled" | "failed";
 }) {
+  const router = useRouter();
   const current = op.plan ?? "essential";
   const paid = PLANS.filter((p) => p.amount > 0);
   const [choice, setChoice] = useState<PlanId>(
@@ -29,10 +32,17 @@ export default function UpgradePanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(notice === "failed" ? "That payment didn't go through — nothing has been charged." : notice === "cancelled" ? "Payment cancelled. Your plan is unchanged." : "");
   const [transfer, setTransfer] = useState(false);
-  const [requested, setRequested] = useState(op.pendingPlan ?? null);
+  const [done, setDone] = useState<PlanId | null>(null);
+  const [form, setForm] = useState({
+    payerName: "",
+    payerBank: "",
+    paidOn: new Date().toISOString().slice(0, 10),
+    reference: "",
+    note: "",
+  });
+  const setField = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const info = planInfo(choice);
-  const hasBank = Boolean(bank.accountNumber);
 
   const pay = async () => {
     setBusy(true);
@@ -52,32 +62,36 @@ export default function UpgradePanel({
     setTransfer(true); // no gateway configured — pay by bank transfer
   };
 
-  const confirmTransfer = async () => {
+  const declareTransfer = async () => {
     setBusy(true);
     setError("");
     const res = await fetch("/api/billing/request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: choice }),
+      body: JSON.stringify({ plan: choice, ...form }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
-    if (!res.ok) return setError(data.error || "Could not send your request.");
-    setRequested(choice);
+    if (!res.ok) return setError(data.error || "Could not record your payment.");
+    setDone(choice);
+    router.refresh();
   };
 
-  if (requested) {
-    const req = planInfo(requested);
+  if (done) {
+    const live = planInfo(done);
     return (
       <div className="card-luxe p-8 text-center md:p-12">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold-500/15 text-gold-700">
           <ShieldCheck size={30} />
         </span>
-        <h2 className="font-display mt-6 text-4xl text-espresso-900">We&apos;re confirming your payment</h2>
+        <h2 className="font-display mt-6 text-4xl text-espresso-900">You&apos;re on {live.name}</h2>
         <p className="mx-auto mt-3 max-w-md text-muted">
-          Your request to move to <b className="text-espresso-800">{req.name}</b> is with our team. The moment we see {naira(req.amount)} land, your
-          plan goes live and we&apos;ll email you — usually within a few working hours.
+          Everything on the plan is switched on now. Our team will match your transfer of {naira(live.amount)} against the account and email your
+          receipt — keep your transfer slip until then.
         </p>
+        <Link href={`/dashboard/${op.slug}`} className="btn-gold mt-8">
+          Back to my dashboard <ArrowRight size={15} />
+        </Link>
       </div>
     );
   }
@@ -164,41 +178,65 @@ export default function UpgradePanel({
               <p className="mt-3 text-center text-xs text-muted">Card, bank transfer or USSD. Cancel any time — your plan runs to the end of the month you paid for.</p>
             </>
           ) : (
-            <div className="mt-5 rounded-2xl bg-sand p-5">
-              <p className="flex items-center gap-2 text-sm font-semibold text-espresso-900">
-                <Building2 size={16} className="text-gold-600" /> Pay by bank transfer
-              </p>
-              {hasBank ? (
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl bg-sand p-5">
+                <p className="flex items-center gap-2 text-sm font-semibold text-espresso-900">
+                  <Building2 size={16} className="text-gold-600" /> Transfer {naira(info.amount)} to
+                </p>
                 <dl className="mt-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">Account name</dt>
+                    <dd className="font-semibold text-espresso-900">{bank.accountName}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted">Account number</dt>
+                    <dd className="font-mono text-lg font-bold text-espresso-900">{bank.accountNumber}</dd>
+                  </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted">Bank</dt>
                     <dd className="font-semibold text-espresso-900">{bank.bank}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted">Account name</dt>
-                    <dd className="font-semibold text-espresso-900">{bank.accountName}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-muted">Account number</dt>
-                    <dd className="font-mono font-bold text-espresso-900">{bank.accountNumber}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-muted">Amount</dt>
-                    <dd className="font-semibold text-espresso-900">{naira(info.amount)}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-muted">Reference</dt>
+                    <dt className="text-muted">Use as reference</dt>
                     <dd className="font-mono font-semibold text-espresso-900">{op.slug.slice(0, 18)}</dd>
                   </div>
                 </dl>
-              ) : (
-                <p className="mt-2 text-sm text-muted">
-                  Card payment isn&apos;t switched on yet. Tap below and our team will contact you with payment details right away.
+              </div>
+
+              <div className="rounded-2xl border border-linen p-5">
+                <p className="text-sm font-semibold text-espresso-900">Tell us about the transfer</p>
+                <p className="mt-1 text-xs text-muted">Your plan switches on as soon as you submit this. We match it against the account afterwards.</p>
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="label-luxe" htmlFor="payerName">Name on the account you paid from</label>
+                    <input id="payerName" value={form.payerName} onChange={(e) => setField("payerName", e.target.value)} className="input-luxe" placeholder="Jane Otem" />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label-luxe" htmlFor="payerBank">Your bank</label>
+                      <input id="payerBank" value={form.payerBank} onChange={(e) => setField("payerBank", e.target.value)} className="input-luxe" placeholder="GTBank" />
+                    </div>
+                    <div>
+                      <label className="label-luxe" htmlFor="paidOn">Date sent</label>
+                      <input id="paidOn" type="date" value={form.paidOn} onChange={(e) => setField("paidOn", e.target.value)} className="input-luxe" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="label-luxe" htmlFor="reference">Transaction reference / session ID</label>
+                    <input id="reference" value={form.reference} onChange={(e) => setField("reference", e.target.value)} className="input-luxe" placeholder="From your bank alert (optional)" />
+                  </div>
+                  <div>
+                    <label className="label-luxe" htmlFor="note">Anything else</label>
+                    <input id="note" value={form.note} onChange={(e) => setField("note", e.target.value)} className="input-luxe" placeholder="Optional" />
+                  </div>
+                </div>
+                <button onClick={declareTransfer} disabled={busy || form.payerName.trim().length < 2} className="btn-gold mt-5 w-full">
+                  {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowRight size={15} />} I&apos;ve sent the payment — activate my plan
+                </button>
+                <p className="mt-3 text-center text-xs text-muted">
+                  Declaring a payment you haven&apos;t made will have the plan reversed.
                 </p>
-              )}
-              <button onClick={confirmTransfer} disabled={busy} className="btn-dark mt-4 w-full">
-                {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowRight size={15} />} I&apos;ve sent the payment
-              </button>
+              </div>
             </div>
           )}
         </div>

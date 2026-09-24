@@ -67,8 +67,8 @@ export interface Operator {
   hidden?: boolean;
   /** Revision of a team-managed listing last applied to the database. */
   managedRevision?: number;
-  /** "active" once a paid plan is paid for; "pending" while a bank transfer is being confirmed. */
-  planStatus?: "active" | "pending";
+  /** "active" once paid; "confirming" while the team checks a declared bank transfer. */
+  planStatus?: "active" | "pending" | "confirming";
   /** Plan the owner asked to move to, awaiting payment confirmation. */
   pendingPlan?: PlanId;
   /** ISO date the current paid plan runs to. */
@@ -190,8 +190,17 @@ export interface Payment {
   plan: PlanId;
   amount: number; // Naira
   method: "flutterwave" | "transfer";
+  /** "pending" — declared by the owner, not yet checked; "paid" — confirmed; "failed" — reversed or unpaid. */
   status: "pending" | "paid" | "failed";
   providerId?: string;
   createdAt: string;
   paidAt?: string;
+  /* Declared bank transfer — what the owner told us, for the team to match against the bank statement. */
+  payerName?: string;
+  payerBank?: string;
+  paidOn?: string; // YYYY-MM-DD
+  reference?: string;
+  note?: string;
+  /** Plan before this payment, so an unmatched transfer can be reversed. */
+  previousPlan?: PlanId;
 }

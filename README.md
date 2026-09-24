@@ -110,8 +110,9 @@ Existing accounts (created before verification existed) count as verified.
 
 - **Upgrading** starts at `/dashboard/<slug>/upgrade` — plan choice, then payment. It never re-runs the new-listing wizard, and the pricing table on `/for-business` links there too when an operator is signed in.
 - **Flutterwave** (`src/lib/billing.ts`): set `FLW_SECRET_KEY` and the operator pays by card, transfer or USSD. Flutterwave returns to `/api/billing/callback`, which verifies the transaction server-side (amount, currency and reference) before the plan changes — the redirect alone is never trusted.
-- **Without a key**, the same button shows your bank details (`BANK_NAME`, `BANK_ACCOUNT_NAME`, `BANK_ACCOUNT_NUMBER`) and an "I've sent the payment" button. That marks the listing `pendingPlan`, emails the operator and `TEAM_EMAIL`, and the team activates it at `/admin/plans`.
-- Payments are recorded in the `payments` collection; an active plan carries `planStatus` and `planRenewsAt`.
+- **Without a key**, the same button shows the glee.ng bank account (Shed Factory Limited · 0501730843 · Sterling Bank — override with `BANK_NAME`, `BANK_ACCOUNT_NAME`, `BANK_ACCOUNT_NUMBER`) and a short form: who the transfer was sent from, their bank, the date and the reference. Submitting it **activates the plan immediately** and records the payment as unconfirmed.
+- The team then matches it against the bank statement at `/admin/plans`: "Money received" confirms it, "No payment found" reverses the listing to its previous plan. `TEAM_EMAIL` (or `SMTP_USER`) gets an email with the declared details.
+- Payments are recorded in the `payments` collection with the declared details and the previous plan; a listing carries `planStatus` (`active` / `confirming`) and `planRenewsAt`.
 
 ## The Journal (blog)
 

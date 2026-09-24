@@ -125,12 +125,14 @@ export default async function Dashboard({
           </div>
         )}
 
-        {op.pendingPlan && (
+        {op.planStatus === "confirming" && (
           <div className="mb-6 flex items-start gap-4 rounded-[24px] border border-gold-500/40 bg-ivory p-6 shadow-soft">
             <Wallet size={24} className="mt-0.5 shrink-0 text-gold-600" />
             <div>
-              <p className="font-display text-2xl text-espresso-900">We&apos;re confirming your {planInfo(op.pendingPlan).name} payment</p>
-              <p className="mt-1 text-sm text-muted">Your plan changes as soon as our team sees the transfer — we&apos;ll email you.</p>
+              <p className="font-display text-2xl text-espresso-900">Your {planInfo(op.plan).name} plan is live</p>
+              <p className="mt-1 text-sm text-muted">
+                We&apos;re matching your transfer against the account and will email your receipt. Keep your transfer slip until then.
+              </p>
             </div>
           </div>
         )}

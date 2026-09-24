@@ -19,10 +19,11 @@ const API = "https://api.flutterwave.com/v3";
 
 export const flutterwaveConfigured = () => Boolean(process.env.FLW_SECRET_KEY);
 
+/** Where operators pay while card payments are being set up. Overridable from the environment. */
 export const bankDetails = () => ({
-  bank: process.env.BANK_NAME || "",
-  accountName: process.env.BANK_ACCOUNT_NAME || "",
-  accountNumber: process.env.BANK_ACCOUNT_NUMBER || "",
+  bank: process.env.BANK_NAME || "Sterling Bank",
+  accountName: process.env.BANK_ACCOUNT_NAME || "Shed Factory Limited",
+  accountNumber: process.env.BANK_ACCOUNT_NUMBER || "0501730843",
 });
 
 export const newTxRef = (slug: string) => `glee-${slug.slice(0, 20)}-${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;

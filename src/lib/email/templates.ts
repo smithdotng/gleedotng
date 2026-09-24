@@ -262,6 +262,42 @@ export function planActivated(p: { op: Operator; planName: string; amount: numbe
   });
 }
 
+export function transferDeclaredForTeam(p: {
+  op: Operator;
+  planName: string;
+  amount: number;
+  payerName: string;
+  payerBank?: string;
+  paidOn?: string;
+  reference?: string;
+  note?: string;
+}) {
+  const url = appUrl();
+  return build({
+    subject: `Check payment: ${p.op.name} → ${p.planName}`,
+    preheader: `${p.op.name} declared a transfer of ${naira(p.amount)} and is now on ${p.planName}.`,
+    eyebrow: "Match this against the bank",
+    title: "A transfer has been declared",
+    intro: `<b>${esc(p.op.name)}</b> (${esc(p.op.email)}) says they have sent <b>${naira(
+      p.amount,
+    )}</b> for the <b>${esc(p.planName)}</b> plan. The plan is live already — confirm it once the money shows, or reverse it if nothing arrives.`,
+    blocks: [
+      {
+        type: "details",
+        title: "What they told us",
+        rows: [
+          ["Sent from", p.payerName],
+          ["Bank", p.payerBank || "—"],
+          ["Date", p.paidOn || "—"],
+          ["Reference", p.reference || "—"],
+          ["Note", p.note || "—"],
+        ],
+      },
+    ],
+    cta: { label: "Open plan payments", url: `${url}/admin/plans` },
+  });
+}
+
 export function planRequested(p: { op: Operator; planName: string; amount: number }) {
   return build({
     subject: `We're confirming your ${p.planName} payment`,

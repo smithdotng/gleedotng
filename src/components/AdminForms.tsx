@@ -117,31 +117,44 @@ export function PostRowActions({ post }: { post: Post }) {
   );
 }
 
-/* ---------------- Plan requests ---------------- */
+/* ---------------- Declared bank transfers ---------------- */
 
-export function PlanRequestActions({ slug, plan }: { slug: string; plan: string }) {
+export function TransferActions({ txRef }: { txRef: string }) {
   const router = useRouter();
-  const [busy, setBusy] = useState<"activate" | "decline" | null>(null);
+  const [busy, setBusy] = useState<"confirm" | "reverse" | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
-  const send = async (action: "activate" | "decline") => {
+  const send = async (action: "confirm" | "reverse") => {
     setBusy(action);
     await fetch("/api/admin/plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, plan, action }),
+      body: JSON.stringify({ txRef, action }),
     });
     setBusy(null);
+    setConfirming(false);
     router.refresh();
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <button onClick={() => send("activate")} disabled={busy !== null} className="btn-gold !px-4 !py-2 text-xs">
-        {busy === "activate" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Payment received — activate
+    <div className="flex flex-wrap items-center gap-2">
+      <button onClick={() => send("confirm")} disabled={busy !== null} className="btn-gold !px-4 !py-2 text-xs">
+        {busy === "confirm" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Money received
       </button>
-      <button onClick={() => send("decline")} disabled={busy !== null} className="btn-outline !px-4 !py-2 text-xs">
-        {busy === "decline" ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />} Dismiss
-      </button>
+      {confirming ? (
+        <span className="flex items-center gap-2 text-xs">
+          <button onClick={() => send("reverse")} disabled={busy !== null} className="rounded-full bg-red-600 px-4 py-2 font-semibold text-white">
+            {busy === "reverse" ? "Reversing…" : "Reverse the plan"}
+          </button>
+          <button onClick={() => setConfirming(false)} className="font-semibold text-muted hover:text-espresso-900">
+            Cancel
+          </button>
+        </span>
+      ) : (
+        <button onClick={() => setConfirming(true)} className="btn-outline !px-4 !py-2 text-xs">
+          <X size={14} /> No payment found
+        </button>
+      )}
     </div>
   );
 }
