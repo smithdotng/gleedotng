@@ -4,8 +4,8 @@ import type { Collection, Filter, Sort } from "mongodb";
 import { getDb } from "./mongodb";
 import { SEED_OPERATORS } from "./seed";
 import { MANAGED_LISTINGS } from "./listings";
-import type { Booking, BookingStatus, CategoryId, Operator, OperatorAccount, Order, OrderStatus, Payment, PlanId, Product } from "./types";
-import { addDays, chairCapacity, isSlotFree, lowestPrice, toISODate, toMins, type Interval } from "./utils";
+import type { Booking, BookingStatus, CategoryId, Operator, OperatorAccount, Order, OrderStatus, Payment, PlanId, Product, Weekday } from "./types";
+import { WEEKDAYS, addDays, chairCapacity, isSlotFree, lowestPrice, toISODate, toMins, weekdayOf, type Interval } from "./utils";
 
 /**
  * Data layer — every page and API route goes through this module.
@@ -312,6 +312,131 @@ export async function updateBookingStatus(id: string, status: BookingStatus): Pr
   return res ?? undefined;
 }
 
+/* ---------------- Deposits ---------------- */
+
+export async function setBookingDeposit(
+  id: string,
+  patch: { depositAmount?: number; depositStatus?: Booking["depositStatus"]; depositTxRef?: string; depositPaidAt?: string },
+): Promise<Booking | undefined> {
+  const col = await bookingsCol();
+  await col.updateOne({ id }, { $set: { ...patch, updatedAt: new Date().toISOString() } });
+  return (await col.findOne({ id }, NO_ID)) ?? undefined;
+}
+
+/* ---------------- Reminders ---------------- */
+
+/** Appointments on a given date that still need a reminder sent. */
+export async function getBookingsNeedingReminder(date: string): Promise<Booking[]> {
+  const col = await bookingsCol();
+  const rows = await col.find({ date, status: { $ne: "cancelled" } }, NO_ID).limit(500).toArray();
+  return rows.filter((b) => !b.remindedClientAt && b.status !== "completed");
+}
+
+export async function markReminded(id: string): Promise<void> {
+  await (await bookingsCol()).updateOne({ id }, { $set: { remindedClientAt: new Date().toISOString() } });
+}
+
+/* ---------------- Insights ---------------- */
+
+export interface Insights {
+  from: string;
+  to: string;
+  totals: { requests: number; confirmed: number; completed: number; cancelled: number; booked: number; collected: number };
+  previous: { requests: number; booked: number };
+  byDay: { date: string; count: number; value: number }[];
+  byWeekday: { weekday: Weekday; count: number }[];
+  byHour: { hour: number; count: number }[];
+  /** Appointments still to come — they sit outside the reporting window but matter most. */
+  upcoming: { count: number; value: number };
+  topServices: { name: string; count: number; value: number }[];
+  clients: { total: number; repeat: number };
+  store?: { orders: number; revenue: number };
+}
+
+export async function getInsights(slug: string, days = 30): Promise<Insights> {
+  const col = await bookingsCol();
+  const to = new Date();
+  const from = addDays(to, -days + 1);
+  const prevFrom = addDays(to, -days * 2 + 1);
+  const fromISO = toISODate(from);
+  const toISO = toISODate(to);
+  const prevFromISO = toISODate(prevFrom);
+
+  const rows = await col
+    .find({ operatorSlug: slug, date: { $gte: prevFromISO } }, NO_ID)
+    .limit(5000)
+    .toArray();
+
+  const ahead = rows.filter((b) => b.date > toISO && b.status !== "cancelled");
+
+  const inRange = rows.filter((b) => b.date >= fromISO && b.date <= toISO);
+  const prior = rows.filter((b) => b.date >= prevFromISO && b.date < fromISO);
+  const live = inRange.filter((b) => b.status !== "cancelled");
+
+  const byDayMap = new Map<string, { count: number; value: number }>();
+  for (let i = 0; i < days; i++) byDayMap.set(toISODate(addDays(from, i)), { count: 0, value: 0 });
+  const weekdayMap = new Map<Weekday, number>(WEEKDAYS.map((w) => [w, 0]));
+  const hourMap = new Map<number, number>();
+  const serviceMap = new Map<string, { count: number; value: number }>();
+  const clientSeen = new Map<string, number>();
+
+  for (const b of live) {
+    const day = byDayMap.get(b.date);
+    if (day) {
+      day.count += 1;
+      day.value += b.price;
+    }
+    weekdayMap.set(weekdayOf(b.date), (weekdayMap.get(weekdayOf(b.date)) ?? 0) + 1);
+    const hour = Number(b.time.slice(0, 2));
+    hourMap.set(hour, (hourMap.get(hour) ?? 0) + 1);
+    const svc = serviceMap.get(b.serviceName) ?? { count: 0, value: 0 };
+    svc.count += 1;
+    svc.value += b.price;
+    serviceMap.set(b.serviceName, svc);
+    const key = (b.customerPhone || b.customerEmail || b.customerName).replace(/\s/g, "").toLowerCase();
+    clientSeen.set(key, (clientSeen.get(key) ?? 0) + 1);
+  }
+
+  let orders: { orders: number; revenue: number } | undefined;
+  try {
+    const ords = await (await ordersCol())
+      .find({ operatorSlug: slug, createdAt: { $gte: `${fromISO}T00:00:00.000Z` } }, NO_ID)
+      .limit(2000)
+      .toArray();
+    const paid = ords.filter((o) => o.status !== "cancelled");
+    orders = { orders: paid.length, revenue: paid.reduce((sum, o) => sum + o.subtotal, 0) };
+  } catch {
+    orders = undefined;
+  }
+
+  return {
+    from: fromISO,
+    to: toISO,
+    totals: {
+      requests: inRange.length,
+      confirmed: inRange.filter((b) => b.status === "confirmed").length,
+      completed: inRange.filter((b) => b.status === "completed").length,
+      cancelled: inRange.filter((b) => b.status === "cancelled").length,
+      booked: live.reduce((sum, b) => sum + b.price, 0),
+      collected: live.filter((b) => b.depositStatus === "paid").reduce((sum, b) => sum + (b.depositAmount ?? 0), 0),
+    },
+    previous: {
+      requests: prior.length,
+      booked: prior.filter((b) => b.status !== "cancelled").reduce((sum, b) => sum + b.price, 0),
+    },
+    byDay: [...byDayMap.entries()].map(([date, v]) => ({ date, ...v })),
+    byWeekday: WEEKDAYS.map((w) => ({ weekday: w, count: weekdayMap.get(w) ?? 0 })),
+    byHour: [...hourMap.entries()].sort((a, b) => a[0] - b[0]).map(([hour, count]) => ({ hour, count })),
+    topServices: [...serviceMap.entries()]
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6),
+    upcoming: { count: ahead.length, value: ahead.reduce((sum, b) => sum + b.price, 0) },
+    clients: { total: clientSeen.size, repeat: [...clientSeen.values()].filter((n) => n > 1).length },
+    store: orders,
+  };
+}
+
 /* ---------------- Operator accounts ---------------- */
 
 export const normaliseEmail = (e: string) => e.trim().toLowerCase();
@@ -364,6 +489,8 @@ export type ListingPatch = Partial<
     | "hours"
     | "homeService"
     | "priceTier"
+    | "deposit"
+    | "remindersOn"
   >
 >;
 

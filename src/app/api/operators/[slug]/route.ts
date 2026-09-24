@@ -121,6 +121,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ slug: 
     }
   }
 
+  if (b.remindersOn !== undefined) patch.remindersOn = Boolean(b.remindersOn);
+  if (b.deposit !== undefined) {
+    const d = b.deposit ?? {};
+    const type = d.type === "fixed" ? "fixed" : "percent";
+    const raw = Math.round(Number(d.value) || 0);
+    const value = type === "percent" ? Math.max(5, Math.min(100, raw)) : Math.max(500, Math.min(500_000, raw));
+    const enabled = Boolean(d.enabled) && planInfo(op.plan).deposits;
+    patch.deposit = { enabled, type, value };
+  }
+
   if (b.hours !== undefined) {
     const hours = {} as Hours;
     for (const d of DAYS) {

@@ -14,6 +14,7 @@ import { CATEGORIES } from "@/lib/seed";
 import { WEEKDAY_LABEL, lowestPrice, naira, prettyDate, prettyTime, priceTierLabel } from "@/lib/utils";
 import type { Weekday } from "@/lib/types";
 import { PRIVATE, SITE } from "@/lib/site";
+import { depositRuleFor } from "@/lib/deposits";
 
 export const dynamic = "force-dynamic";
 
@@ -278,7 +279,7 @@ export default async function StylistPage({ params }: { params: Params }) {
         </div>
 
         <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-          <BookingPanel op={op} />
+          <BookingPanel op={op} depositRule={depositRuleFor(op)} />
         </aside>
       </div>
 

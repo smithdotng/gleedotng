@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Clock, Home, Loader2, Lock } from "lucide-react";
 import type { Operator } from "@/lib/types";
-import { addDays, cn, duration, prettyTime, servicePriceLabel, toISODate, weekdayOf } from "@/lib/utils";
+import { computeDeposit, type DepositRule } from "@/lib/deposits";
+import { addDays, cn, duration, naira, prettyTime, servicePriceLabel, toISODate, weekdayOf } from "@/lib/utils";
 
 export const SELECT_SERVICE_EVENT = "glee:select-service";
 
-export default function BookingPanel({ op }: { op: Operator }) {
+export default function BookingPanel({ op, depositRule }: { op: Operator; depositRule?: DepositRule }) {
   const router = useRouter();
   const [serviceId, setServiceId] = useState(op.services[0]?.id ?? "");
   const [date, setDate] = useState("");
@@ -21,6 +22,8 @@ export default function BookingPanel({ op }: { op: Operator }) {
   const [error, setError] = useState("");
 
   const service = op.services.find((s) => s.id === serviceId);
+  // one rule for the whole business — the amount follows the service the client picks
+  const depositDue = service ? computeDeposit(depositRule, service.price, service.onRequest) : 0;
 
   const days = useMemo(() => {
     const today = new Date();
@@ -207,6 +210,15 @@ export default function BookingPanel({ op }: { op: Operator }) {
           <textarea rows={2} placeholder="Notes for your stylist (inspo, allergies, address for home service…)" className="input-luxe resize-none" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         </div>
 
+        {depositDue > 0 && (
+          <div className="rounded-2xl border border-gold-500/40 bg-gold-500/10 px-4 py-3 text-sm">
+            <p className="font-semibold text-espresso-900">{naira(depositDue)} deposit to hold your chair</p>
+            <p className="mt-0.5 text-xs text-espresso-700">
+              Paid online after you request the time — it comes off your bill on the day.
+            </p>
+          </div>
+        )}
+
         {error && <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>}
 
         <button type="submit" disabled={!canSubmit || submitting} className="btn-gold w-full !py-4">
@@ -214,7 +226,7 @@ export default function BookingPanel({ op }: { op: Operator }) {
           {time && service ? `Request ${prettyTime(time)} · ${servicePriceLabel(service)}` : "Select a time"}
         </button>
         <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted">
-          <Lock size={11} /> Pay at the venue · Free cancellation up to 24h before
+          <Lock size={11} /> {depositDue > 0 ? "Deposit online · balance at the venue" : "Pay at the venue"} · Free cancellation up to 24h before
         </p>
       </div>
     </form>

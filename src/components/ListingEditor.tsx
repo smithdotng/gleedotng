@@ -7,6 +7,7 @@ import { Check, Clock, Copy, ImagePlus, Loader2, Plus, Trash2 } from "lucide-rea
 import { CATEGORIES, CITIES } from "@/lib/seed";
 import { UPLOAD_CHOICES } from "@/lib/images";
 import { planInfo } from "@/lib/plans";
+import { naira } from "@/lib/utils";
 import type { CategoryId, Operator, Service, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +21,22 @@ const DAYS: { id: Weekday; label: string }[] = [
   { id: "sun", label: "Sunday" },
 ];
 const KINDS = ["Salon", "Studio", "Spa", "Barbershop", "Independent stylist"];
-const TABS = ["Profile", "Photos", "Services", "Opening hours"] as const;
+const TABS = ["Profile", "Photos", "Services", "Opening hours", "Bookings"] as const;
 type Tab = (typeof TABS)[number];
 
 type Row = Service & { priceMax?: number; priceFrom?: boolean; onRequest?: boolean };
 type DayRow = { on: boolean; open: string; close: string };
 
-export default function ListingEditor({ op, tab: initialTab = "Profile" }: { op: Operator; tab?: Tab }) {
+export default function ListingEditor({
+  op,
+  tab: initialTab = "Profile",
+  depositsAvailable = false,
+}: {
+  op: Operator;
+  tab?: Tab;
+  /** Online payments are configured, so deposits can actually be collected. */
+  depositsAvailable?: boolean;
+}) {
   const router = useRouter();
   const plan = planInfo(op.plan);
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -54,6 +64,12 @@ export default function ListingEditor({ op, tab: initialTab = "Profile" }: { op:
   const [gallery, setGallery] = useState<string[]>(op.gallery ?? []);
   const [newPhoto, setNewPhoto] = useState("");
   const [services, setServices] = useState<Row[]>(op.services.map((s) => ({ ...s })));
+  const [reminders, setReminders] = useState(op.remindersOn !== false);
+  const [deposit, setDeposit] = useState({
+    enabled: Boolean(op.deposit?.enabled),
+    type: (op.deposit?.type ?? "percent") as "percent" | "fixed",
+    value: op.deposit?.value ?? 20,
+  });
   const [hours, setHours] = useState<Record<Weekday, DayRow>>(
     Object.fromEntries(
       DAYS.map((d) => [d.id, op.hours?.[d.id] ? { on: true, ...op.hours[d.id]! } : { on: false, open: "09:00", close: "19:00" }]),
@@ -79,6 +95,8 @@ export default function ListingEditor({ op, tab: initialTab = "Profile" }: { op:
       gallery,
       services: services.map((s) => ({ ...s, price: Number(s.price) || 0, priceMax: Number(s.priceMax) || 0 })),
       hours: Object.fromEntries(DAYS.map((d) => [d.id, hours[d.id].on ? { open: hours[d.id].open, close: hours[d.id].close } : null])),
+      remindersOn: reminders,
+      deposit: { ...deposit, value: Number(deposit.value) || 0 },
     };
     const res = await fetch(`/api/operators/${op.slug}`, {
       method: "PATCH",
@@ -465,6 +483,116 @@ export default function ListingEditor({ op, tab: initialTab = "Profile" }: { op:
                 {preset.label}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "Bookings" && (
+        <div className="space-y-6">
+          <div className="card-luxe p-6 md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-2xl text-espresso-900">Appointment reminders</h3>
+                <p className="mt-1 max-w-xl text-sm text-muted">
+                  The evening before, every client with an appointment gets a reminder with the time, the service and your address — and you
+                  get tomorrow&apos;s list in one email.
+                </p>
+              </div>
+              {plan.reminders ? (
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={reminders}
+                    onChange={(e) => {
+                      setReminders(e.target.checked);
+                      setSaved(false);
+                    }}
+                    className="h-5 w-5 accent-[#c9a25c]"
+                  />
+                  <span className="text-sm font-semibold text-espresso-800">{reminders ? "On" : "Off"}</span>
+                </label>
+              ) : (
+                <Link href={`/dashboard/${op.slug}/upgrade`} className="btn-outline !py-2.5 text-xs">
+                  On Signature & Prestige
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="card-luxe p-6 md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-2xl text-espresso-900">Booking deposit</h3>
+                <p className="mt-1 max-w-xl text-sm text-muted">
+                  Ask for part of the price up front. A client who has paid something turns up — and the deposit comes off their bill on the day.
+                </p>
+              </div>
+              {plan.deposits && depositsAvailable ? (
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={deposit.enabled}
+                    onChange={(e) => {
+                      setDeposit({ ...deposit, enabled: e.target.checked });
+                      setSaved(false);
+                    }}
+                    className="h-5 w-5 accent-[#c9a25c]"
+                  />
+                  <span className="text-sm font-semibold text-espresso-800">{deposit.enabled ? "On" : "Off"}</span>
+                </label>
+              ) : !plan.deposits ? (
+                <Link href={`/dashboard/${op.slug}/upgrade`} className="btn-outline !py-2.5 text-xs">
+                  On Signature & Prestige
+                </Link>
+              ) : (
+                <span className="rounded-full bg-sand px-4 py-2 text-xs font-semibold text-muted">Available once card payments are live</span>
+              )}
+            </div>
+
+            {plan.deposits && depositsAvailable && deposit.enabled && (
+              <div className="mt-6 grid gap-4 sm:grid-cols-[200px_1fr]">
+                <div>
+                  <label className="label-luxe" htmlFor="depositType">How it&apos;s worked out</label>
+                  <select
+                    id="depositType"
+                    value={deposit.type}
+                    onChange={(e) => {
+                      setDeposit({ ...deposit, type: e.target.value as "percent" | "fixed", value: e.target.value === "percent" ? 20 : 10000 });
+                      setSaved(false);
+                    }}
+                    className="input-luxe"
+                  >
+                    <option value="percent">Percentage of the price</option>
+                    <option value="fixed">A fixed amount</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label-luxe" htmlFor="depositValue">{deposit.type === "percent" ? "Percentage" : "Amount in Naira"}</label>
+                  <input
+                    id="depositValue"
+                    type="number"
+                    min={deposit.type === "percent" ? 5 : 500}
+                    max={deposit.type === "percent" ? 100 : 500000}
+                    step={deposit.type === "percent" ? 5 : 500}
+                    value={deposit.value}
+                    onChange={(e) => {
+                      setDeposit({ ...deposit, value: Number(e.target.value) });
+                      setSaved(false);
+                    }}
+                    className="input-luxe"
+                  />
+                  <p className="mt-2 text-xs text-muted">
+                    On a {naira(50000)} service a client would pay{" "}
+                    <b className="text-espresso-800">
+                      {naira(
+                        Math.round(Math.min(deposit.type === "percent" ? (50000 * (Number(deposit.value) || 0)) / 100 : Number(deposit.value) || 0, 50000) / 100) * 100,
+                      )}
+                    </b>{" "}
+                    to hold the chair. Services priced on consultation never ask for a deposit.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

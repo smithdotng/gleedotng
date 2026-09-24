@@ -35,6 +35,8 @@ interface CheckoutInput {
   email: string;
   name: string;
   redirectUrl: string;
+  /** Shown on the Flutterwave page — defaults to the plan name. */
+  description?: string;
 }
 
 /** Creates a hosted payment link. Returns null when Flutterwave is unavailable. */
@@ -55,7 +57,7 @@ export async function createPaymentLink(input: CheckoutInput): Promise<string | 
         customer: { email: input.email, name: input.name },
         customizations: {
           title: "glee.ng",
-          description: `${plan.name} plan — one month`,
+          description: input.description ?? `${plan.name} plan — one month`,
         },
         meta: { plan: input.plan },
       }),

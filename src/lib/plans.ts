@@ -15,6 +15,12 @@ export interface PlanInfo {
   maxPhotos: number;
   featured: boolean;
   store: boolean;
+  /** Appointment reminders to clients. */
+  reminders: boolean;
+  /** Booking deposits. */
+  deposits: boolean;
+  /** The insights dashboard. */
+  insights: boolean;
 }
 
 export const PLANS: PlanInfo[] = [
@@ -37,6 +43,9 @@ export const PLANS: PlanInfo[] = [
     maxPhotos: 6,
     featured: false,
     store: false,
+    reminders: false,
+    deposits: false,
+    insights: false,
   },
   {
     id: "signature",
@@ -51,7 +60,7 @@ export const PLANS: PlanInfo[] = [
       "Featured placement on home & search",
       "Gold verified badge",
       "Unlimited services & gallery",
-      "WhatsApp & SMS appointment reminders",
+      "Automatic appointment reminders",
       "Booking deposits to reduce no-shows",
       "Performance insights",
     ],
@@ -60,6 +69,9 @@ export const PLANS: PlanInfo[] = [
     maxPhotos: 20,
     featured: true,
     store: false,
+    reminders: true,
+    deposits: true,
+    insights: true,
   },
   {
     id: "prestige",
@@ -83,11 +95,17 @@ export const PLANS: PlanInfo[] = [
     maxPhotos: 30,
     featured: true,
     store: true,
+    reminders: true,
+    deposits: true,
+    insights: true,
   },
 ];
 
 export const planInfo = (id: PlanId | undefined) => PLANS.find((p) => p.id === id) ?? PLANS[0];
 export const hasStore = (op: { plan?: PlanId }) => planInfo(op.plan).store;
+export const hasReminders = (op: { plan?: PlanId }) => planInfo(op.plan).reminders;
+export const hasDeposits = (op: { plan?: PlanId }) => planInfo(op.plan).deposits;
+export const hasInsights = (op: { plan?: PlanId }) => planInfo(op.plan).insights;
 export const isPlanId = (v: unknown): v is PlanId => PLANS.some((p) => p.id === v);
 
 /** Plans an operator can pay for, in order. */

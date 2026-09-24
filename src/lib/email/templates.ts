@@ -336,3 +336,70 @@ export function planRequestForTeam(p: { op: Operator; planName: string; amount: 
     cta: { label: "Open plan requests", url: `${url}/admin/plans` },
   });
 }
+
+/* ---------------- Deposits & reminders ---------------- */
+
+export function depositPaidForClient(p: { booking: Booking; op: Operator }) {
+  return build({
+    subject: `Deposit received — ${p.op.name}`,
+    preheader: `Your ${naira(p.booking.depositAmount ?? 0)} deposit is in. Your chair is held.`,
+    eyebrow: "Deposit received",
+    title: "Your chair is held",
+    intro: `Thank you — we've received your deposit of <b>${naira(p.booking.depositAmount ?? 0)}</b> for <b>${esc(
+      p.op.name,
+    )}</b>. It comes off your bill on the day.`,
+    blocks: [{ type: "details", title: "Your appointment", rows: bookingRows(p.booking, p.op) }],
+  });
+}
+
+export function depositPaidForOperator(p: { booking: Booking; op: Operator }) {
+  const url = appUrl();
+  return build({
+    subject: `Deposit paid — ${p.booking.customerName}`,
+    preheader: `${p.booking.customerName} has paid ${naira(p.booking.depositAmount ?? 0)}.`,
+    eyebrow: "Deposit paid",
+    title: "A deposit has landed",
+    intro: `<b>${esc(p.booking.customerName)}</b> has paid a deposit of <b>${naira(
+      p.booking.depositAmount ?? 0,
+    )}</b> on their appointment. Far fewer of these seats go empty.`,
+    blocks: [{ type: "details", title: "The appointment", rows: bookingRows(p.booking, p.op) }],
+    cta: { label: "Open my dashboard", url: `${url}/dashboard/${p.op.slug}` },
+  });
+}
+
+export function appointmentReminder(p: { booking: Booking; op: Operator }) {
+  const url = appUrl();
+  return build({
+    subject: `Tomorrow: ${p.booking.serviceName} at ${p.op.name}`,
+    preheader: `${when(p.booking)} — we're looking forward to you.`,
+    eyebrow: "See you tomorrow",
+    title: "Your appointment is tomorrow",
+    intro: `A gentle reminder that <b>${esc(p.op.name)}</b> is expecting you. If anything has changed, call ${esc(
+      p.op.phone,
+    )} so the time can go to someone else.`,
+    blocks: [
+      { type: "details", title: "Your appointment", rows: bookingRows(p.booking, p.op) },
+      { type: "note", html: `Getting there: ${esc(p.op.address)}` },
+    ],
+    cta: { label: "View my booking", url: `${url}/bookings/${p.booking.id}` },
+  });
+}
+
+export function dayAheadForOperator(p: { op: Operator; bookings: Booking[]; date: string }) {
+  const url = appUrl();
+  return build({
+    subject: `Tomorrow at ${p.op.name}: ${p.bookings.length} appointment${p.bookings.length === 1 ? "" : "s"}`,
+    preheader: `Your list for ${prettyDate(p.date, { weekday: "long", day: "numeric", month: "long" })}.`,
+    eyebrow: "Tomorrow's chairs",
+    title: prettyDate(p.date, { weekday: "long", day: "numeric", month: "long" }),
+    intro: `Here is tomorrow at <b>${esc(p.op.name)}</b>, in order. Every client has been reminded.`,
+    blocks: [
+      {
+        type: "details",
+        title: "The day",
+        rows: p.bookings.map((b) => [prettyTime(b.time), `${b.customerName} · ${b.serviceName}`] as [string, string]),
+      },
+    ],
+    cta: { label: "Open my dashboard", url: `${url}/dashboard/${p.op.slug}` },
+  });
+}

@@ -73,6 +73,10 @@ export interface Operator {
   pendingPlan?: PlanId;
   /** ISO date the current paid plan runs to. */
   planRenewsAt?: string;
+  /** Booking deposit for every service in this business (Signature and Prestige). */
+  deposit?: { enabled: boolean; type: "percent" | "fixed"; value: number };
+  /** Appointment reminders to clients (Signature and Prestige). */
+  remindersOn?: boolean;
   reviews: Review[];
   createdAt: string;
   /** Lowest service price — kept in sync by the store for sorting. */
@@ -102,6 +106,14 @@ export interface Booking {
   updatedAt?: string;
   /** Price as shown to the client, e.g. "From ₦85,000" or "On consultation". */
   priceLabel?: string;
+  /** Deposit asked for at booking, in Naira. */
+  depositAmount?: number;
+  /** "awaiting" until the client pays it; absent when the business takes no deposit. */
+  depositStatus?: "awaiting" | "paid";
+  depositTxRef?: string;
+  depositPaidAt?: string;
+  /** ISO timestamps of reminders already sent, so none is sent twice. */
+  remindedClientAt?: string;
 }
 
 /* ---------------- glee Store (Prestige plan) ---------------- */
@@ -190,6 +202,9 @@ export interface Payment {
   plan: PlanId;
   amount: number; // Naira
   method: "flutterwave" | "transfer";
+  /** "plan" (a subscription) or "deposit" (a client's booking deposit). */
+  kind?: "plan" | "deposit";
+  bookingId?: string;
   /** "pending" — declared by the owner, not yet checked; "paid" — confirmed; "failed" — reversed or unpaid. */
   status: "pending" | "paid" | "failed";
   providerId?: string;

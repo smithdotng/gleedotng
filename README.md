@@ -106,6 +106,13 @@ Existing accounts (created before verification existed) count as verified.
 - Changes go through `PATCH /api/operators/<slug>`, which only accepts the signed-in owner's own listing and never touches plan, verified badge, ratings or reviews. Photo and service counts are capped by the plan.
 - A team-managed listing in `src/lib/listings.ts` is still overwritten if its `revision` goes up, so raise that only when you mean to replace the owner's edits.
 
+## Reminders, deposits & insights (Signature and Prestige)
+
+- **Appointment reminders** — `/api/cron/reminders` runs daily (Vercel Cron, `vercel.json`, 07:00 UTC = 8am WAT). Every client with an appointment the next day gets a reminder email, and each business gets tomorrow's list in one email. Bookings are stamped `remindedClientAt`, so a repeat run sends nothing. Protect it with `CRON_SECRET` (Vercel sends `Authorization: Bearer …`; `?key=` also works for a manual run). A business can switch reminders off in **Edit listing → Bookings**. SMS/WhatsApp is not wired up — add a provider in `src/app/api/cron/reminders/route.ts` where the email is sent.
+- **Booking deposits** — one rule for the whole business (percentage or fixed, set in **Edit listing → Bookings**). The amount is worked out per service, rounded to ₦100, skipped on "on consultation" prices, and shown on the booking panel before the client commits. The booking is created with `depositStatus: "awaiting"`; the confirmation page has a Pay button that goes through Flutterwave and the callback verifies it before marking the booking paid. Deposits only appear when `FLW_SECRET_KEY` is set — a client is never asked for money the site can't take. Deposits are collected into the glee.ng Flutterwave account, so settle them with the business.
+- **Insights** — `/dashboard/<slug>/insights`, 30 or 90 days: appointments and booked value against the previous period, what's still to come, returning clients, appointments a day, your week, what sells, busiest hours, and money in (services, deposits, store). Charts are single-series with their own labels and a table view, so nothing depends on colour alone.
+- Plan limits live in `src/lib/plans.ts` (`reminders`, `deposits`, `insights`); Essential sees an upgrade prompt instead.
+
 ## Plans & payments
 
 - **Upgrading** starts at `/dashboard/<slug>/upgrade` — plan choice, then payment. It never re-runs the new-listing wizard, and the pricing table on `/for-business` links there too when an operator is signed in.

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createBooking, getBookings, getOperator } from "@/lib/store";
 import { daySlots, servicePriceLabel } from "@/lib/utils";
+import { depositFor } from "@/lib/deposits";
+import { setBookingDeposit } from "@/lib/store";
 import * as mail from "@/lib/email/templates";
 import { sendLater } from "@/lib/email";
 
@@ -47,9 +49,14 @@ export async function POST(req: Request) {
       notes: String(body.notes ?? "").slice(0, 500),
       atHome: Boolean(body.atHome) && op.homeService,
     });
-    sendLater(op.email, () => mail.bookingNewForOperator({ booking, op }));
-    sendLater(booking.customerEmail, () => mail.bookingReceivedForClient({ booking, op }));
-    return NextResponse.json({ booking }, { status: 201 });
+    // Deposit (Signature and Prestige, once online payments are switched on)
+    const deposit = depositFor(op, svc);
+    const withDeposit =
+      deposit > 0 ? ((await setBookingDeposit(booking.id, { depositAmount: deposit, depositStatus: "awaiting" })) ?? booking) : booking;
+
+    sendLater(op.email, () => mail.bookingNewForOperator({ booking: withDeposit, op }));
+    sendLater(withDeposit.customerEmail, () => mail.bookingReceivedForClient({ booking: withDeposit, op }));
+    return NextResponse.json({ booking: withDeposit }, { status: 201 });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 409 });
   }

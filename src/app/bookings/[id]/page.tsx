@@ -6,12 +6,20 @@ import { getBooking, getOperator } from "@/lib/store";
 import { duration, naira, prettyDate, prettyTime } from "@/lib/utils";
 import { PRIVATE } from "@/lib/site";
 import { InstallCard } from "@/components/InstallApp";
+import DepositButton from "@/components/DepositButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Booking requested", ...PRIVATE };
 
-export default async function BookingConfirmation({ params }: { params: Promise<{ id: string }> }) {
+export default async function BookingConfirmation({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ deposit?: string }>;
+}) {
   const { id } = await params;
+  const { deposit: depositResult } = await searchParams;
   const booking = await getBooking(id);
   if (!booking) notFound();
   const op = await getOperator(booking.operatorSlug);
@@ -79,6 +87,29 @@ export default async function BookingConfirmation({ params }: { params: Promise<
             </div>
           </div>
         </div>
+
+        {booking.depositStatus === "awaiting" && booking.depositAmount ? (
+          <div className="mt-6 rounded-[24px] border border-gold-500/40 bg-ivory p-6 shadow-soft">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-display text-2xl text-espresso-900">Hold your chair with a deposit</p>
+                <p className="mt-1 text-sm text-muted">
+                  {op.name} asks for {naira(booking.depositAmount)} up front. It comes off your bill on the day, and the
+                  balance is paid at the venue.
+                </p>
+                {depositResult === "failed" && <p className="mt-2 text-sm text-red-600">That payment didn&apos;t go through — nothing was charged.</p>}
+                {depositResult === "cancelled" && <p className="mt-2 text-sm text-muted">Payment cancelled. You can still pay the deposit here.</p>}
+              </div>
+              <div className="sm:w-60">
+                <DepositButton bookingId={booking.id} amount={booking.depositAmount} />
+              </div>
+            </div>
+          </div>
+        ) : booking.depositStatus === "paid" && booking.depositAmount ? (
+          <div className="mt-6 flex items-center gap-3 rounded-[24px] bg-gold-500/15 p-5 text-sm font-semibold text-gold-700">
+            <CheckCircle2 size={18} /> {naira(booking.depositAmount)} deposit paid — your chair is held. The balance is paid at the venue.
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {op.phone ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Home, Loader2, Phone, X } from "lucide-react";
+import { Check, Home, Loader2, Phone, Wallet, X } from "lucide-react";
 import type { Booking, BookingStatus } from "@/lib/types";
 import { cn, naira, prettyDate, prettyTime, toISODate } from "@/lib/utils";
 
@@ -85,6 +85,15 @@ export default function AppointmentsBoard({ initial }: { initial: Booking[] }) {
                       <Home size={10} /> Home
                     </span>
                   )}
+                  {b.depositStatus === "paid" && b.depositAmount ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gold-500/15 px-2 py-0.5 text-[10px] font-bold text-gold-700 uppercase">
+                      <Wallet size={10} /> {naira(b.depositAmount)} deposit paid
+                    </span>
+                  ) : b.depositStatus === "awaiting" && b.depositAmount ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-muted uppercase">
+                      <Wallet size={10} /> deposit unpaid
+                    </span>
+                  ) : null}
                 </div>
                 <p className="mt-0.5 text-sm text-espresso-700">
                   {b.serviceName} · <b>{b.priceLabel ?? naira(b.price)}</b>

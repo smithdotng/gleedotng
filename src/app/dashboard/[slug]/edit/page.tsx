@@ -4,12 +4,13 @@ import { ArrowLeft } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { getOperator } from "@/lib/store";
 import ListingEditor from "@/components/ListingEditor";
+import { depositsAvailable } from "@/lib/deposits";
 import { PRIVATE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit your listing", ...PRIVATE };
 
-const TABS = ["Profile", "Photos", "Services", "Opening hours"] as const;
+const TABS = ["Profile", "Photos", "Services", "Opening hours", "Bookings"] as const;
 
 export default async function EditListing({
   params,
@@ -40,7 +41,7 @@ export default async function EditListing({
         </div>
       </section>
       <div className="container-luxe pt-10">
-        <ListingEditor op={op} tab={start} />
+        <ListingEditor op={op} tab={start} depositsAvailable={depositsAvailable()} />
       </div>
     </div>
   );

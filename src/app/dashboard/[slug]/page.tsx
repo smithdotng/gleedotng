@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Clock, ExternalLink, LogOut, PartyPopper, PenLine, ShoppingBag, Star, Wallet } from "lucide-react";
+import { BarChart3, CalendarDays, Clock, ExternalLink, LogOut, PartyPopper, PenLine, ShoppingBag, Star, Wallet } from "lucide-react";
 import { hasStore, planInfo } from "@/lib/plans";
 import { getSession } from "@/lib/auth";
 import Photo from "@/components/Photo";
@@ -78,6 +78,9 @@ export default async function Dashboard({
             </Link>
             <Link href={`/dashboard/${op.slug}/edit`} className="btn-ghost-light !py-2.5">
               <PenLine size={15} /> Edit listing
+            </Link>
+            <Link href={`/dashboard/${op.slug}/insights`} className="btn-ghost-light !py-2.5">
+              <BarChart3 size={15} /> Insights
             </Link>
             <Link href={`/dashboard/${op.slug}/store`} className={hasStore(op) ? "btn-gold !py-2.5" : "btn-ghost-light !py-2.5"}>
               <ShoppingBag size={15} /> {hasStore(op) ? "My store" : "Store"}
