@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import Logo from "./Logo";
+import AccountMenu, { AccountMenuMobile, useMe } from "./AccountMenu";
 import { InstallButton } from "./InstallApp";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,8 @@ export default function SiteHeader() {
   const overlay = pathname === "/" || pathname === "/for-business";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { me, loaded } = useMe();
+  const signedIn = Boolean(me?.operator || me?.admin);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -59,12 +62,20 @@ export default function SiteHeader() {
         </nav>
         <div className="hidden items-center gap-3 lg:flex">
           <InstallButton variant="header" />
-          <Link href="/login" className="text-[13px] font-medium text-ivory/75 hover:text-gold-300">
-            Operator login
-          </Link>
-          <Link href="/list-your-business" className="btn-gold !px-5 !py-2.5">
-            List your business
-          </Link>
+          {signedIn && me ? (
+            <AccountMenu me={me} />
+          ) : (
+            loaded && (
+              <>
+                <Link href="/login" className="text-[13px] font-medium text-ivory/75 hover:text-gold-300">
+                  Operator login
+                </Link>
+                <Link href="/list-your-business" className="btn-gold !px-5 !py-2.5">
+                  List your business
+                </Link>
+              </>
+            )
+          )}
         </div>
         <button
           className="rounded-full p-2 text-ivory lg:hidden"
@@ -82,12 +93,18 @@ export default function SiteHeader() {
                 {n.label}
               </Link>
             ))}
-            <Link href="/login" className="py-3 text-sm text-ivory/85">
-              Operator login
-            </Link>
-            <Link href="/list-your-business" className="btn-gold mt-3">
-              List your business
-            </Link>
+            {signedIn && me ? (
+              <AccountMenuMobile me={me} />
+            ) : (
+              <>
+                <Link href="/login" className="py-3 text-sm text-ivory/85">
+                  Operator login
+                </Link>
+                <Link href="/list-your-business" className="btn-gold mt-3">
+                  List your business
+                </Link>
+              </>
+            )}
             <InstallButton variant="menu" />
           </div>
         </div>
